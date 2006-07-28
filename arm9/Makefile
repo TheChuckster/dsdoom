@@ -31,7 +31,7 @@ CFLAGS	:=	-g -Wall -O2\
 		-fno-strict-aliasing -ffast-math \
 		$(ARCH)
 
-CFLAGS		+=	$(INCLUDE) -DARM9
+CFLAGS		+=	$(INCLUDE) -DARM9 -D__NDS__
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH)

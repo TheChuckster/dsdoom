@@ -57,7 +57,7 @@ void P_UnArchiveRNG(void);
 void P_ArchiveMap(void);
 void P_UnArchiveMap(void);
 
-extern byte *save_p;
+extern char *save_p;
 void CheckSaveGame(size_t);              /* killough */
 
 #endif

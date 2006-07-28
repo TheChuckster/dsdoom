@@ -235,6 +235,10 @@ void V_DrawMemPatch(int x, int y, int scrn, const patch_t *patch, int cm, enum p
   if (!trans)
     flags &= ~VPT_TRANS;
 
+    iprintf("V_DrawMemPatch: Patch (%d,%d)-(%d,%d) "
+            "V_DrawMemPatch (flags=%u)\n", x, y, x+SHORT(patch->width), y+SHORT(patch->height), flags);
+
+
   if (x<0
       ||x+SHORT(patch->width) > ((flags & VPT_STRETCH) ? 320 : SCREENWIDTH)
       || y<0

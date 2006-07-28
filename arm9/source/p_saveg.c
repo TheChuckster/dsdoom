@@ -40,7 +40,7 @@
 #include "p_enemy.h"
 #include "lprintf.h"
 
-byte *save_p;
+char *save_p;
 
 // Pads save_p to a 4-byte boundary
 //  so that the load/save works on SGI&Gecko.
@@ -176,7 +176,7 @@ void P_ArchiveWorld (void)
             *put++ = si->midtexture;
           }
     }
-  save_p = (byte *) put;
+  save_p = (char *) put;
 }
 
 
@@ -241,7 +241,7 @@ void P_UnArchiveWorld (void)
             si->midtexture = *get++;
           }
     }
-  save_p = (byte *) get;
+  save_p = (char *) get;
 }
 
 //
@@ -421,7 +421,7 @@ void P_UnArchiveThinkers (void)
 
   // killough 2/14/98: count number of thinkers by skipping through them
   {
-    byte *sp = save_p;     // save pointer and skip header
+    char *sp = save_p;     // save pointer and skip header
     for (size = 1; *save_p++ == tc_mobj; size++)  // killough 2/14/98
       {                     // skip all entries, adding up count
         PADSAVEP();

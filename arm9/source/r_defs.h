@@ -352,7 +352,7 @@ typedef struct
   short leftoffset;     // pixels to the left of origin
   short topoffset;      // pixels below the origin
   int columnofs[8];     // only [width] used
-} patch_t;
+} PACKED patch_t;
 
 // proff: Added for OpenGL
 typedef struct
