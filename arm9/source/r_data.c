@@ -69,7 +69,7 @@ typedef struct
 typedef struct
 {
   char       name[8];
-  boolean    masked;
+  int	    masked;
   short      width;
   short      height;
   char       pad[4];       // unused in Doom but might be used in Boom Phase 2
@@ -243,11 +243,16 @@ static void R_GenerateLookup(int texnum, int *const errors)
   // killough 4/9/98: make column offsets 32-bit;
   // clean up malloc-ing to use sizeof
   // CPhipps - moved allocing here
-  short *collump = texture->columnlump =
-    Z_Malloc(texture->width*sizeof(*texture->columnlump), PU_STATIC,0);
-  unsigned *colofs = texture->columnofs =
-    Z_Malloc(texture->width*sizeof(*texture->columnofs), PU_STATIC,0);
+  short *collump;
 
+  texture->columnlump = Z_Malloc(texture->width*sizeof(*texture->columnlump), PU_STATIC,0);
+  collump = texture->columnlump;
+
+  unsigned *colofs;
+  
+  texture->columnofs = Z_Malloc(texture->width*sizeof(*texture->columnofs), PU_STATIC,0);
+  colofs = texture->columnofs;
+	
   // killough 4/9/98: keep count of posts in addition to patches.
   // Part of fix for medusa bug for multipatched 2s normals.
 
@@ -342,6 +347,7 @@ const byte *R_GetColumn(int tex, int col)
   const texture_t *texture = textures[tex];
   if (!texture->columnlump) R_GenerateLookup(tex, NULL);
   {
+  
   int lump = texture->columnlump[col &= texture->widthmask];
   int ofs  = texture->columnofs[col]; // cph - WARNING: must be after the above line
   // cph - remember the last lump, so we can unlock it if no longer needed,
@@ -427,9 +433,9 @@ void R_InitTextures (void)
 
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
-          if (patchlookup[i] == -1 && devparm)
+          if (patchlookup[i] == -1)
             //jff 8/3/98 use logical output routine
-            lprintf(LO_WARN,"\nWarning: patch %.8s, index %d does not exist",name,i);
+            lprintf(LO_WARN,"\npatch %.8s, index %d does not exist",name,i);
         }
     }
   W_UnlockLumpNum(names_lump); // cph - release the lump
@@ -442,7 +448,7 @@ void R_InitTextures (void)
   numtextures1 = LONG(*maptex);
   maxoff = W_LumpLength(maptex_lump[0]);
   directory = maptex+1;
-
+  
   if (W_CheckNumForName("TEXTURE2") != -1)
     {
       maptex2 = W_CacheLumpNum(maptex_lump[1] = W_GetNumForName("TEXTURE2"));
@@ -462,7 +468,7 @@ void R_InitTextures (void)
 
   textures = Z_Malloc(numtextures*sizeof*textures, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
-
+  
   totalwidth = 0;
 
   for (i=0 ; i<numtextures ; i++, directory++)
@@ -481,16 +487,16 @@ void R_InitTextures (void)
         I_Error("R_InitTextures: Bad texture directory");
 
       mtexture = (maptexture_t *) ( (byte *)maptex + offset);
-
+	  
       texture = textures[i] =
         Z_Malloc(sizeof(texture_t) +
                  sizeof(texpatch_t)*(SHORT(mtexture->patchcount)-1),
                  PU_STATIC, 0);
-
-      texture->width = SHORT(mtexture->width);
+				 
+	texture->width = SHORT(mtexture->width);
       texture->height = SHORT(mtexture->height);
       texture->patchcount = SHORT(mtexture->patchcount);
-
+	  
         /* Mattias Engdegård emailed me of the following explenation of
          * why memcpy doesnt work on some systems:
          * "I suppose it is the mad unaligned allocation
@@ -754,18 +760,17 @@ void R_InitTranMap(int progress)
         unsigned char pct;
         unsigned char playpal[256];
       } cache;
-      FILE *cachefp = fopen(strcat(strcpy(fname, I_DoomExeDir()),
-                                   "/tranmap.dat"),"r+b");
+      FAT_FILE *cachefp = fopen(strcat(strcpy(fname, I_DoomExeDir()), "/tranmap.dat"),"r+");
 
       main_tranmap = my_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
 
       // Use cached translucency filter if it's available
 
       if (!cachefp ? cachefp = fopen(fname,"wb") , 1 :
-          fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
+          FAT_fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
-          fread(my_tranmap, 256, 256, cachefp) != 256 ) // killough 4/11/98
+          FAT_fread(my_tranmap, 256, 256, cachefp) != 256 ) // killough 4/11/98
         {
           long pal[3][256], tot[256], pal_w1[3][256];
           long w1 = ((unsigned long) tran_filter_pct<<TSC)/100;
@@ -828,15 +833,15 @@ void R_InitTranMap(int progress)
             {
               cache.pct = tran_filter_pct;
               memcpy(cache.playpal, playpal, 256);
-              fseek(cachefp, 0, SEEK_SET);
-              fwrite(&cache, 1, sizeof cache, cachefp);
-              fwrite(main_tranmap, 256, 256, cachefp);
+              FAT_fseek(cachefp, 0, SEEK_SET);
+              FAT_fwrite(&cache, 1, sizeof cache, cachefp);
+              FAT_fwrite(main_tranmap, 256, 256, cachefp);
         // CPhipps - leave close for a few lines...
             }
         }
 
       if (cachefp)              // killough 11/98: fix filehandle leak
-        fclose(cachefp);
+        FAT_fclose(cachefp);
 
       W_UnlockLumpName("PLAYPAL");
     }

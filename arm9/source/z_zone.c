@@ -106,7 +106,7 @@ static const size_t HEADER_SIZE = (sizeof(memblock_t)+CHUNK_SIZE-1) & ~(CHUNK_SI
 
 static memblock_t *blockbytag[PU_MAX];
 
-static int memory_size = 8192*1024;
+static int memory_size = 3*1024*1024;
 static int free_memory = 0;
 
 #ifdef INSTRUMENTED
@@ -333,7 +333,10 @@ void *(Z_Malloc)(size_t size, int tag, void **user
 #endif
 
   if (!size)
+  {
+	iprintf("Zero byte allocation requested.\n");
     return user ? *user = NULL : NULL;           // malloc(0) returns NULL
+  }
 
   size = (size+CHUNK_SIZE-1) & ~(CHUNK_SIZE-1);  // round to chunk size
 

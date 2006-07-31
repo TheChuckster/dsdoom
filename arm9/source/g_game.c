@@ -2221,13 +2221,15 @@ void G_WriteDemoTiccmd (ticcmd_t* cmd)
 
 void G_RecordDemo (const char* name)
 {
+	I_Error("G_RecordDemo not implemented!\n");
+/*
   char     demoname[PATH_MAX];
   usergame = false;
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
   demorecording = true;
-  /* cph - Record demos straight to file
-   * If file already exists, try to continue existing demo
-   */
+  // cph - Record demos straight to file
+  // If file already exists, try to continue existing demo
+  //
   if (access(demoname, F_OK)) {
     demofp = fopen(demoname, "wb");
   } else {
@@ -2237,7 +2239,7 @@ void G_RecordDemo (const char* name)
       int rc;
       int bytes_per_tic;
 
-      { /* Read the demo header for options etc */
+      { // Read the demo header for options etc
         byte buf[200];
         size_t len;
         fread(buf, 1, sizeof(buf), demofp);
@@ -2246,7 +2248,7 @@ void G_RecordDemo (const char* name)
         fseek(demofp, len, SEEK_SET);
       }
       bytes_per_tic = longtics ? 5 : 4;
-      /* Now read the demo to find the last save slot */
+      // Now read the demo to find the last save slot
       do {
         byte buf[5];
       
@@ -2259,13 +2261,13 @@ void G_RecordDemo (const char* name)
 
       if (slot == -1) I_Error("G_RecordDemo: No save in demo, can't continue");
 
-      /* Return to the last save position, and load the relevant savegame */
+      // Return to the last save position, and load the relevant savegame
       fseek(demofp, -rc, SEEK_CUR);
       G_LoadGame(slot, false);
       autostart = false;
     }
   }
-  if (!demofp) I_Error("G_RecordDemo: failed to open %s", name);
+  if (!demofp) I_Error("G_RecordDemo: failed to open %s", name);*/
 }
 
 // These functions are used to read and write game-specific options in demos

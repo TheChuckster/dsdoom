@@ -40,9 +40,11 @@
 //typedef unsigned char byte;
 //#endif
 #include <nds.h>
+#include "gba_nds_fat.h"
 
 //typedef enum { false, true } boolean;
-typedef bool boolean;
+typedef bool qboolean;
+typedef int boolean;
 #endif
 
 #ifndef true

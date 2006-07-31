@@ -5,7 +5,8 @@
 
 /* Uncomment this to exhaustively run memory checks while the game is running
    (this is EXTREMELY slow). */
-#define CHECKHEAP 1 // TODO: DISABLE!!!
+/*#define CHECKHEAP 1 // TODO: DISABLE!!! */
+#undef CHECKHEAP
 
 /* Define for support for MBF helper dogs */
 #define DOGS 1
@@ -63,7 +64,7 @@
 #undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the `mmap' function. */
-#undef HAVE_MMAP
+#define HAVE_MMAP
 
 /* Define if you want network game support */
 #undef HAVE_NET
@@ -106,7 +107,7 @@
 
 /* Uncomment this to cause heap dumps to be generated. Only useful if
    INSTRUMENTED is also defined. */
-/* #undef HEAPDUMP */
+#undef HEAPDUMP
 
 /* Define for high resolution support */
 #undef HIGHRES
@@ -116,6 +117,7 @@
 
 /* Define this to see real-time memory allocation statistics, and enable extra
    debugging features */
+/* #define INSTRUMENTED 1 */
 #define INSTRUMENTED 1
 
 /* Name of package */

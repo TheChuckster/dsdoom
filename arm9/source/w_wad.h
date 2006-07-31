@@ -41,6 +41,8 @@
 // TYPES
 //
 
+#include "gba_nds_fat.h"
+
 typedef struct
 {
   char identification[4];                  // Should be "IWAD" or "PWAD".
@@ -77,7 +79,7 @@ typedef enum {
 typedef struct {
   const char* name;
   wad_source_t src;
-  int handle;
+  FAT_FILE *handle;
 } wadfile_info_t;
 
 extern wadfile_info_t *wadfiles;

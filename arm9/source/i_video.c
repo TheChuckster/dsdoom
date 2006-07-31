@@ -244,22 +244,211 @@ static void I_GetEvent(SDL_Event *Event)
 //
 static int mouse_currently_grabbed;
 */
+
+char weapons[9] = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+int weapon_index = 0;
+
 void I_StartTic (void)
 {
-  /*SDL_Event Event;
-  {
-    int should_be_grabbed = grabMouse &&
-      !(paused || (gamestate != GS_LEVEL) || demoplayback);
-
-    if (mouse_currently_grabbed != should_be_grabbed)
-      SDL_WM_GrabInput((mouse_currently_grabbed = should_be_grabbed)
-          ? SDL_GRAB_ON : SDL_GRAB_OFF);
-  }
-
-  while ( SDL_PollEvent(&Event) )
-    I_GetEvent(&Event);
-
-  I_PollJoystick();*/
+	scanKeys();	// Do DS input housekeeping
+	u16 keys = keysDown();
+	
+	if (keys & KEY_UP)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_UPARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_LEFT)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_LEFTARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_DOWN)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_DOWNARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_RIGHT)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_RIGHTARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_START)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_ESCAPE;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_SELECT)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_ENTER;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_A)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_RCTRL;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_B)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = ' ';
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_X)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = KEYD_RSHIFT;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_Y)
+	{
+		weapon_index++;
+		if (weapon_index >= 9) weapon_index = 0;
+		
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = weapons[weapon_index];
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_R)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = '.';
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_L)
+	{
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = ',';
+		D_PostEvent(&event);
+	}
+	
+	keys = keysUp();
+	
+	if (keys & KEY_UP)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_UPARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_LEFT)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_LEFTARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_DOWN)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_DOWNARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_RIGHT)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_RIGHTARROW;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_START)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_ESCAPE;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_SELECT)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_ENTER;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_A)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_RCTRL;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_B)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = ' ';
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_X)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = KEYD_RSHIFT;
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_Y)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = weapons[weapon_index];
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_R)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = '.';
+		D_PostEvent(&event);
+	}
+	
+	if (keys & KEY_L)
+	{
+		event_t event;
+		event.type = ev_keyup;
+		event.data1 = ',';
+		D_PostEvent(&event);
+	}
 }
 
 //
@@ -368,11 +557,8 @@ static void I_UploadNewPalette(int pal)
 		g = (u8)colours[i+256*pal].g;
 		b = (u8)colours[i+256*pal].b;
 		
-		iprintf("%d %d %d\n", r, g, b);
-		
 		BG_PALETTE[i]=RGB8(r,g,b);
 	}
-	iprintf("nds: BG_PALETTE set!\n");
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -397,7 +583,6 @@ static int newpal = 0;
 
 void I_FinishUpdate (void)
 {
-iprintf("nds: Finishing update.\n");
   if (I_SkipFrame()) return;
 
 #ifndef GL_DOOM

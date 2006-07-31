@@ -59,7 +59,7 @@
 #include <stdio.h>
 #include <stdlib.h>*/
 
-#include <fat.h>
+#include "gba_nds_fat.h"
 
 int broken_pipe;
 
@@ -384,11 +384,11 @@ int main(int argc, char **argv)
     BG3_CX = 0;
     BG3_CY = 0;
 	
-	//lcdSwap();
+	lcdSwap();
 	
 	iprintf("Survived graphics init.\n");
 
-	if (!fatInitDefault())
+	if (!FAT_InitFiles())
 	{
 		iprintf("Unable to initialize media device!\n");
 	} else {

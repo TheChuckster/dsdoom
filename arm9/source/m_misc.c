@@ -109,16 +109,16 @@ static inline void I_EndRead(void) {}
 
 boolean M_WriteFile(char const *name, void *source, int length)
 {
-  FILE *fp;
+  FAT_FILE *fp;
 
   errno = 0;
 
-  if (!(fp = fopen(name, "wb")))       // Try opening file
+  if (!(fp = FAT_fopen(name, "wb")))       // Try opening file
     return 0;                          // Could not open file for writing
 
   I_BeginRead();                       // Disk icon on
-  length = fwrite(source, 1, length, fp) == (size_t)length;   // Write data
-  fclose(fp);
+  length = FAT_fwrite(source, 1, length, fp) == (size_t)length;   // Write data
+  FAT_fclose(fp);
   I_EndRead();                         // Disk icon off
 
   if (!length)                         // Remove partially written file
@@ -135,26 +135,27 @@ boolean M_WriteFile(char const *name, void *source, int length)
 
 int M_ReadFile(char const *name, byte **buffer)
 {
-  FILE *fp;
+  FAT_FILE *fp;
 
   errno = 0;
 
-  if ((fp = fopen(name, "rb")))
+  fp = FAT_fopen(name, "r");
+  
     {
       size_t length;
 
       I_BeginRead();
-      fseek(fp, 0, SEEK_END);
+      FAT_fseek(fp, 0, SEEK_END);
       length = ftell(fp);
-      fseek(fp, 0, SEEK_SET);
+      FAT_fseek(fp, 0, SEEK_SET);
       *buffer = Z_Malloc(length, PU_STATIC, 0);
-      if (fread(*buffer, 1, length, fp) == length)
+      if (FAT_fread(*buffer, 1, length, fp) == length)
         {
-          fclose(fp);
+          FAT_fclose(fp);
           I_EndRead();
           return length;
         }
-      fclose(fp);
+      FAT_fclose(fp);
     }
 
   I_Error("Couldn't read file %s: %s", name, 
@@ -387,7 +388,7 @@ default_t defaults[] =
 #endif
 
   {"Mouse settings",{NULL},{0},UL,UL,def_none,ss_none},
-  {"use_mouse",{&usemouse},{1},0,1,
+  {"use_mouse",{&usemouse},{0},0,1,
    def_bool,ss_none}, // enables use of mouse with DOOM
   //jff 4/3/98 allow unlimited sensitivity
   {"mouse_sensitivity_horiz",{&mouseSensitivity_horiz},{10},0,UL,

@@ -206,8 +206,6 @@ extern int     showMessages;
 
 void D_Display (void)
 {
-iprintf("Begin D_Display frame!\n");
-
   static boolean inhelpscreensstate   = false;
   static boolean isborderstate        = false;
   static boolean borderwillneedredraw = false;
@@ -225,8 +223,6 @@ iprintf("Begin D_Display frame!\n");
   if ((wipe = gamestate != wipegamestate))
     wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 #endif /* GL_DOOM */
-
-  iprintf("gamestate = %d\n", gamestate);
 
   if (gamestate != GS_LEVEL) { // Not a level
     switch (oldgamestate) {
@@ -316,7 +312,6 @@ iprintf("Begin D_Display frame!\n");
           0, "M_PAUSE", CR_DEFAULT, VPT_STRETCH);
   }
   
-  iprintf("M_Drawer\n");
   // menus go directly to the screen
   M_Drawer();          // menu is drawn even on top of everything
 #ifdef HAVE_NET
@@ -338,7 +333,6 @@ iprintf("Begin D_Display frame!\n");
   I_FinishUpdate ();              // page flip or blit buffer
 #endif /* GL_DOOM */
 
-iprintf("End D_Display frame!\n");
 }
 
 // CPhipps - Auto screenshot Variables
@@ -367,16 +361,13 @@ static void D_DoomLoop(void)
     {
       //user_debugger_update();
       // frame syncronous IO operations
-      iprintf("Start frame.\n");
       I_StartFrame ();
 
       if (ffmap == gamemap) ffmap = 0;
 
-iprintf("Begin process tics.\n");
       // process one or more tics
       if (singletics)
         {
-		iprintf("Begin single tic.\n");
           I_StartTic ();
           G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
           if (advancedemo)
@@ -385,20 +376,15 @@ iprintf("Begin process tics.\n");
           G_Ticker ();
           gametic++;
           maketic++;
-		  iprintf("Single tic success.\n");
         }
       else {
-	  iprintf("Begin TryRunTics().\n");
         TryRunTics (); // will run at least one tic
-		iprintf("Run Ticks tried\n");
 		}
 
-iprintf("Updating sound.\n");
       // killough 3/16/98: change consoleplayer to displayplayer
       if (players[displayplayer].mo) // cph 2002/08/10
 	S_UpdateSounds(players[displayplayer].mo);// move positional sounds
 
-iprintf("Update display.\n");
       // Update display, next frame, with current state.
       D_Display();
 /*
@@ -464,10 +450,8 @@ static void D_SetPageName(const char *name)
 
 static void D_DrawTitle1(const char *name)
 {
-iprintf("Start music.\n");
   S_StartMusic(mus_intro);
   pagetic = (TICRATE*170)/35;
-  iprintf("D_SetPageName(%s)\n", name);
   D_SetPageName(name);
 }
 
@@ -569,7 +553,6 @@ void D_DoAdvanceDemo(void)
   } else
    if (!demostates[++demosequence][gamemode].func)
     demosequence = 0;
-iprintf("Begin func %d %d\n",demosequence, gamemode);
   demostates[demosequence][gamemode].func(demostates[demosequence][gamemode].name);
 }
 
@@ -626,18 +609,20 @@ static const char *D_dehout(void)
 // CPhipps - const char* for iwadname, made static
 static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
 {
-  if ( !access (iwadname,R_OK) )
-  {
     int ud=0,rg=0,sw=0,cm=0,sc=0;
-    FILE* fp;
+    FAT_FILE* fp;
 
     // Identify IWAD correctly
-    if ((fp = fopen(iwadname, "rb")))
-    {
+	fp = FAT_fopen(iwadname, "r");
+	
+	if (fp == (FAT_FILE *)-1) I_Error("CheckIWAD: Can't open IWAD %s", iwadname);
+
       wadinfo_t header;
 
       // read IWAD header
-      if (fread(&header, sizeof(header), 1, fp) == 1 && !strncmp(header.identification, "IWAD", 4))
+      FAT_fread(&header, sizeof(header), 1, fp);
+	  
+	  if (!strncmp(header.identification, "IWAD", 4))
       {
         size_t length;
         filelump_t *fileinfo;
@@ -647,10 +632,12 @@ static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
         header.infotableofs = LONG(header.infotableofs);
         length = header.numlumps;
         fileinfo = malloc(length*sizeof(filelump_t));
-        if (fseek (fp, header.infotableofs, SEEK_SET) ||
-            fread (fileinfo, sizeof(filelump_t), length, fp) != length ||
-            fclose(fp))
-          I_Error("CheckIWAD: failed to read directory %s",iwadname);
+		
+        FAT_fseek (fp, header.infotableofs, SEEK_SET);
+		FAT_fread (fileinfo, sizeof(filelump_t), length, fp);
+		FAT_fclose(fp);
+		
+        //I_Error("CheckIWAD: failed to read directory %s",iwadname);
 
         // scan directory for levelname lumps
         while (length--)
@@ -683,9 +670,6 @@ static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
       }
       else // missing IWAD tag in header
         I_Error("CheckIWAD: IWAD tag %s not present", iwadname);
-    }
-    else // error from open call
-      I_Error("CheckIWAD: Can't open IWAD %s", iwadname);
 
     // Determine game mode from levels present
     // Must be a full set for whichever mode is present
@@ -704,9 +688,6 @@ static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
       *gmode = registered;
     else if (sw>=9)
       *gmode = shareware;
-  }
-  else // error from access call
-    I_Error("CheckIWAD: IWAD %s not readable", iwadname);
 }
 
 
@@ -848,7 +829,7 @@ void IdentifyVersion (void)
 
 #if (defined(GL_DOOM) && defined(_DEBUG))
   // proff 11/99: used for debugging
-  {
+  /*{
     FILE *f;
     f=fopen("levelinfo.txt","w");
     if (f)
@@ -856,7 +837,7 @@ void IdentifyVersion (void)
       fprintf(f,"%s\n",iwad);
       fclose(f);
     }
-  }
+  }*/
 #endif
 
   if (iwad && *iwad)
@@ -894,7 +875,7 @@ void IdentifyVersion (void)
       lprintf(LO_WARN,"Unknown Game Version, may not work\n");
     D_AddFile(iwad,source_iwad);
     //free(iwad);
-  }
+}
   else
     I_Error("IdentifyVersion: IWAD not found\n");
 }
@@ -1684,7 +1665,6 @@ void debug_print_stub(char* string)
 void D_DoomMain(void)
 {
   D_DoomMainSetup(); // CPhipps - setup out of main execution stack
-iprintf("DoomMainSetup Done! Enter DoomLoop\n");
 
 	//start up the wireless, connect to the AP
 	//set_verbosity(VERBOSE_INFO | VERBOSE_ERROR);

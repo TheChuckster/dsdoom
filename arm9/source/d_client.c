@@ -437,8 +437,6 @@ void TryRunTics (void)
 	int runtics;
 	int entertime = I_GetTime();
 
-	iprintf("entertime: %d\n", entertime);
-
 	// Wait for tics to run
 	while (1)
 	{
@@ -447,12 +445,10 @@ void TryRunTics (void)
 		
 		if (!runtics)
 		{
-			iprintf("sleep");
 			I_uSleep(ms_to_next_tick*1000);
 		
 			if (I_GetTime() - entertime > 10)
 			{
-				iprintf("mticker then return\n");
 				remotesend--;
 				M_Ticker();
 				return;
@@ -462,24 +458,17 @@ void TryRunTics (void)
 		}
 	}
 
-	iprintf("secondary loop: %d run tics\n", runtics);
 	while (runtics--)
 	{
 		if (advancedemo)
 		{
-			iprintf("Advance demo start.\n");
 			D_DoAdvanceDemo();
-			iprintf("Advance demo done.\n");
 		}
 		
-		iprintf("Begin M_Ticker().\n");
 		M_Ticker();
-		iprintf("Begin G_Ticker().\n");
 		G_Ticker();
 		gametic++;
-		iprintf("Begin next loop runtics:%d.\n", runtics);
 	}
-	iprintf("break secondary runtics\n");
 }
 /*
 void TryRunTics (void)

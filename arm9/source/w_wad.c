@@ -33,22 +33,7 @@
 // use config.h if autoconf made one -- josh
 
 #include "config.h"
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef _MSC_VER
-#include <stddef.h>
-#include <io.h>
-#endif
-#ifdef DREAMCAST
-#include <kos.h>
-#define O_BINARY 0
-uint32 open(const char *fn, int mode);
-#define lseek fs_seek
-#else
-#include <fcntl.h>
-#endif
+#include <stdlib.h>
 #include "i_system.h"
 
 #include "doomstat.h"
@@ -144,8 +129,7 @@ static void W_AddFile(wadfile_info_t *wadfile)
   filelump_t  singleinfo;
 
   // open the file and add to directory
-
-  wadfile->handle = open(wadfile->name,O_RDONLY | O_BINARY);
+  wadfile->handle = FAT_fopen(wadfile->name, "r+");
 
 #ifdef HAVE_NET
   if (wadfile->handle == -1 && D_NetGetWad(wadfile->name)) // CPhipps
@@ -191,7 +175,7 @@ static void W_AddFile(wadfile_info_t *wadfile)
       header.infotableofs = LONG(header.infotableofs);
       length = header.numlumps*sizeof(filelump_t);
       fileinfo2free = fileinfo = malloc(length);    // killough
-      lseek(wadfile->handle, header.infotableofs, SEEK_SET);
+      FAT_fseek(wadfile->handle, header.infotableofs, SEEK_SET);
       I_Read(wadfile->handle, fileinfo, length);
       numlumps += header.numlumps;
     }
@@ -202,14 +186,14 @@ static void W_AddFile(wadfile_info_t *wadfile)
     lump_p = &lumpinfo[startlump];
 
     for (i=startlump ; (int)i<numlumps ; i++,lump_p++, fileinfo++)
-      {
+    {
         lump_p->wadfile = wadfile;                    //  killough 4/25/98
         lump_p->position = LONG(fileinfo->filepos);
         lump_p->size = LONG(fileinfo->size);
         lump_p->li_namespace = ns_global;              // killough 4/17/98
         strncpy (lump_p->name, fileinfo->name, 8);
-	lump_p->source = wadfile->src;                    // Ty 08/29/98
-      }
+		lump_p->source = wadfile->src;                    // Ty 08/29/98
+    }
 
     free(fileinfo2free);      // killough
 }
@@ -334,9 +318,14 @@ int (W_CheckNumForName)(register const char *name, register int li_namespace)
   // worth the overhead, considering namespace collisions are rare in
   // Doom wads.
 
-  while (i >= 0 && (strncasecmp(lumpinfo[i].name, name, 8) ||
-                    lumpinfo[i].li_namespace != li_namespace))
+/*  while (i >= 0 && (strncasecmp(lumpinfo[i].name, name, 8) ||
+                    lumpinfo[i].li_namespace != li_namespace))*/
+	while (i >= 0 && strncasecmp(lumpinfo[i].name, name, 8))
+{
+					
     i = lumpinfo[i].next;
+	
+}
 
   // Return the matching lump, or -1 if none found.
 
@@ -475,7 +464,7 @@ void W_ReadLump(int lump, void *dest)
     {
       if (l->wadfile)
       {
-        lseek(l->wadfile->handle, l->position, SEEK_SET);
+        FAT_fseek(l->wadfile->handle, l->position, SEEK_SET);
         I_Read(l->wadfile->handle, dest, l->size);
       }
     }
