@@ -66,6 +66,7 @@ typedef unsigned long long int uint_64_t;
 #define S_ISDIR(x) (((sbuf.st_mode & S_IFDIR)==S_IFDIR)?1:0)
 
 #define CONSTFUNC __attribute__((const))
+#define PUREFUNC __attribute__((pure))
 
 /* CPhipps - use limits.h instead of depreciated values.h */
 #include <limits.h>
