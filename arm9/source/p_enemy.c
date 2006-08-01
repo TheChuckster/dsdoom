@@ -50,6 +50,7 @@
 static mobj_t *current_actor;
 
 typedef enum {
+  DI_NULL = -1,
   DI_EAST,
   DI_NORTHEAST,
   DI_NORTH,
