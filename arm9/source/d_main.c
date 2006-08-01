@@ -384,9 +384,11 @@ static void D_DoomLoop(void)
       // killough 3/16/98: change consoleplayer to displayplayer
       if (players[displayplayer].mo) // cph 2002/08/10
 	S_UpdateSounds(players[displayplayer].mo);// move positional sounds
+	
+	UpdateSound();
 
-      // Update display, next frame, with current state.
-      D_Display();
+    // Update display, next frame, with current state.
+    D_Display();
 /*
       // CPhipps - auto screenshot
       if (auto_shot_fname && !--auto_shot_count) {

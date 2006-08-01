@@ -395,12 +395,14 @@ void I_UpdateSound(void *unused, Uint8 *stream, int len)
     // Left and right channel
     //  are in audio stream, alternating.
     leftout = (signed short *)stream;
-    rightout = ((signed short *)stream)+1;
-    step = 2;
+//    rightout = ((signed short *)stream)+1;
+//    step = 2;
+step = 1;
 
     // Determine end, for left channel only
     //  (right channel is implicit).
-    leftend = leftout + (len/4)*step;
+//    leftend = leftout + (len/4)*step;
+	leftend = leftout + (len/2)*step;
 
     // Mix sounds into the mixing buffer.
     // Loop over step*SAMPLECOUNT,
@@ -411,7 +413,7 @@ void I_UpdateSound(void *unused, Uint8 *stream, int len)
   //dl = 0;
   //dr = 0;
   dl = *leftout;
-  dr = *rightout;
+  //dr = *rightout;
 
   // Love thy L2 chache - made this a loop.
   // Now more channels could be set at compile time
@@ -433,7 +435,7 @@ void I_UpdateSound(void *unused, Uint8 *stream, int len)
     //  to the current data.
     // Adjust volume accordingly.
         dl += channelinfo[chan].leftvol_lookup[sample];
-        dr += channelinfo[chan].rightvol_lookup[sample];
+        //dr += channelinfo[chan].rightvol_lookup[sample];
     // Increment index ???
         channelinfo[chan].stepremainder += channelinfo[chan].step;
     // MSB is next sample???
@@ -461,16 +463,16 @@ void I_UpdateSound(void *unused, Uint8 *stream, int len)
       *leftout = (signed short)dl;
 
   // Same for right hardware channel.
-  if (dr > SHRT_MAX)
+/*  if (dr > SHRT_MAX)
       *rightout = SHRT_MAX;
   else if (dr < SHRT_MIN)
       *rightout = SHRT_MIN;
   else
-      *rightout = (signed short)dr;
+      *rightout = (signed short)dr;*/
 
   // Increment current pointers in stream
   leftout += step;
-  rightout += step;
+  //rightout += step;
     }
 }
 

@@ -350,6 +350,25 @@ void I_Quit (void)
 uid_t stored_euid = -1;
 #endif
 
+#define FRAGMENT_SIZE 2350
+u8* stream;
+
+void UpdateSound()
+{
+	I_UpdateSound(NULL, stream, FRAGMENT_SIZE);
+
+	TransferSoundData audiotransfer = {
+		stream, // Sample address
+		FRAGMENT_SIZE,	// Sample length
+		44100,  // Sample rate
+		127,	// Volume
+		64,	// Panning
+		1	// Format
+	};
+	
+	playSound(&audiotransfer);
+}
+
 //int main(int argc, const char * const * argv)
 int main(int argc, char **argv)
 {
@@ -394,6 +413,9 @@ int main(int argc, char **argv)
 	} else {
 		iprintf("FAT_InitFiles(): initialized.\n");
 	}
+	
+	setGenericSound(11025, 127, 64, 0);
+	stream = malloc(FRAGMENT_SIZE*3*sizeof(u8));
 
   /* Version info */
   lprintf(LO_INFO,"\n");
