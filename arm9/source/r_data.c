@@ -433,7 +433,7 @@ void R_InitTextures (void)
 
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
-          if (patchlookup[i] == -1)
+          if (patchlookup[i] == -1 && devparm)
             //jff 8/3/98 use logical output routine
             lprintf(LO_WARN,"\npatch %.8s, index %d does not exist",name,i);
         }
