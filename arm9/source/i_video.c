@@ -601,7 +601,8 @@ void I_FinishUpdate (void)
 	dest = BG_GFX;
       for (; h>0; h--)
       {
-        memcpy(dest,src,w);
+        //memcpy(dest,src,w);
+		dmaCopy(src, dest, w);
         dest+=512;
         src+=SCREENWIDTH;
       }
