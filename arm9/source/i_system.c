@@ -273,6 +273,64 @@ char* I_FindFile(const char* wfname, const char* ext)
 		return "/prboom.wad";
 }
 
+/*
+char* I_FindFile(const char* wfname, const char* ext)
+{
+  int   i;
+  // Precalculate a length we will need in the loop
+  size_t  pl = strlen(wfname) + strlen(ext) + 4;
+
+  for (i=0; i<8; i++) {
+    char  * p;
+    const char  * d = NULL;
+    const char  * s = NULL;
+    // Each entry in the switch sets d to the directory to look in,
+    // and optionally s to a subdirectory of d
+    switch(i) {
+    case 1:
+      if (!(d = getenv("DOOMWADDIR"))) continue;
+    case 0:
+      break;
+    case 2:
+      d = DOOMWADDIR;
+      break;
+    case 4:
+      d = "/usr/share/games/doom";
+      break;
+    case 5:
+      d = "/usr/local/share/games/doom";
+      break;
+    case 6:
+      d = I_DoomExeDir();
+      break;
+    case 3:
+      s = "doom";
+    case 7:
+      if (!(d = getenv("HOME"))) continue;
+      break;
+#ifdef SIMPLECHECKS
+    default:
+      I_Error("FindWADFile: Internal failure");
+#endif
+    }
+
+    p = malloc((d ? strlen(d) : 0) + (s ? strlen(s) : 0) + pl);
+    sprintf(p, "%s%s%s%s%s", d ? d : "", (d && !HasTrailingSlash(d)) ? "/" : "",
+                             s ? s : "", (s && !HasTrailingSlash(s)) ? "/" : "",
+                             wfname);
+
+    if (access(p,F_OK))
+      strcat(p, ext);
+    if (!access(p,F_OK)) {
+      lprintf(LO_INFO, " found %s\n", p);
+      return p;
+    }
+    free(p);
+  }
+  return NULL;
+}
+*/
+
 #endif
 
 #endif // PRBOOM_SERVER
