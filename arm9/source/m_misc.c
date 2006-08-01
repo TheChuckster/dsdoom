@@ -113,7 +113,7 @@ boolean M_WriteFile(char const *name, void *source, int length)
 
   errno = 0;
 
-  if (!(fp = FAT_fopen(name, "wb")))       // Try opening file
+  if (!(fp = FAT_fopen(name, "w")))       // Try opening file
     return 0;                          // Could not open file for writing
 
   I_BeginRead();                       // Disk icon on
@@ -146,7 +146,7 @@ int M_ReadFile(char const *name, byte **buffer)
 
       I_BeginRead();
       FAT_fseek(fp, 0, SEEK_END);
-      length = ftell(fp);
+      length = FAT_ftell(fp);
       FAT_fseek(fp, 0, SEEK_SET);
       *buffer = Z_Malloc(length, PU_STATIC, 0);
       if (FAT_fread(*buffer, 1, length, fp) == length)
@@ -857,22 +857,25 @@ static const char* defaultfile; // CPhipps - static, const
 void M_SaveDefaults (void)
   {
   int   i;
-  FILE* f;
+  FAT_FILE* f;
 
-  f = fopen (defaultfile, "w");
+  f = FAT_fopen (defaultfile, "w");
   if (!f)
-    return; // can't write the file, but don't complain
+  {
+  iprintf("Unable to open config for writing!\n");
+   return; // can't write the file, but don't complain
+   }
 
   // 3/3/98 explain format of file
 
-  fprintf(f,"# Doom config file\n");
-  fprintf(f,"# Format:\n");
-  fprintf(f,"# variable   value\n");
+  FAT_fprintf(f,"# Doom config file\n");
+  FAT_fprintf(f,"# Format:\n");
+  FAT_fprintf(f,"# variable   value\n");
 
   for (i = 0 ; i < numdefaults ; i++) {
     if (defaults[i].type == def_none) {
       // CPhipps - pure headers
-      fprintf(f, "\n# %s\n", defaults[i].name);
+      FAT_fprintf(f, "\n# %s\n", defaults[i].name);
     } else
     // CPhipps - modified for new default_t form
     if (!IS_STRING(defaults[i])) //jff 4/10/98 kill super-hack on pointer value
@@ -880,17 +883,17 @@ void M_SaveDefaults (void)
       // CPhipps - remove keycode hack
       // killough 3/6/98: use spaces instead of tabs for uniform justification
       if (defaults[i].type == def_hex)
-  fprintf (f,"%-25s 0x%x\n",defaults[i].name,*(defaults[i].location.pi));
+  FAT_fprintf (f,"%-25s 0x%x\n",defaults[i].name,*(defaults[i].location.pi));
       else
-  fprintf (f,"%-25s %5i\n",defaults[i].name,*(defaults[i].location.pi));
+  FAT_fprintf (f,"%-25s %5i\n",defaults[i].name,*(defaults[i].location.pi));
       }
     else
       {
-      fprintf (f,"%-25s \"%s\"\n",defaults[i].name,*(defaults[i].location.ppsz));
+      FAT_fprintf (f,"%-25s \"%s\"\n",defaults[i].name,*(defaults[i].location.ppsz));
       }
     }
 
-  fclose (f);
+  FAT_fclose (f);
   }
 
 /*
@@ -919,7 +922,7 @@ void M_LoadDefaults (void)
 {
   int   i;
   int   len;
-  FILE* f;
+  FAT_FILE* f;
   char  def[80];
   char  strparm[100];
   char* newstring = NULL;   // killough
@@ -945,9 +948,9 @@ void M_LoadDefaults (void)
     defaultfile = malloc(PATH_MAX+1);
     /* get config file from same directory as executable */
 #ifdef GL_DOOM
-    snprintf((char *)defaultfile,PATH_MAX,"%s/glboom.cfg", I_DoomExeDir());
+    snprintf((char *)defaultfile,PATH_MAX,"glboom.cfg", I_DoomExeDir());
 #else
-    snprintf((char *)defaultfile,PATH_MAX,"%s/prboom.cfg", I_DoomExeDir());
+    snprintf((char *)defaultfile,PATH_MAX,"prboom.cfg", I_DoomExeDir());
 #endif
   }
 
@@ -955,13 +958,13 @@ void M_LoadDefaults (void)
 
   // read the file in, overriding any set defaults
 
-  f = fopen (defaultfile, "r");
+  f = FAT_fopen (defaultfile, "r");
   if (f)
     {
-    while (!feof(f))
+    while (!FAT_feof(f))
       {
       isstring = false;
-      if (fscanf (f, "%79s %[^\n]\n", def, strparm) == 2)
+      if (FAT_fscanf (f, "%79s %[^\n]\n", def, strparm) == 2)
         {
 
         //jff 3/3/98 skip lines not starting with an alphanum
@@ -1012,7 +1015,7 @@ void M_LoadDefaults (void)
         }
       }
 
-    fclose (f);
+    FAT_fclose (f);
     }
   //jff 3/4/98 redundant range checks for hud deleted here
   /* proff 2001/7/1 - added prboom.wad as last entry so it's always loaded and
@@ -1082,9 +1085,9 @@ typedef struct tagBITMAPINFOHEADER
 
 // jff 3/30/98 binary file write with error detection
 // CPhipps - static, const on parameter
-static void SafeWrite(const void *data, size_t size, size_t number, FILE *st)
+static void SafeWrite(const void *data, size_t size, size_t number, FAT_FILE *st)
 {
-  if (fwrite(data,size,number,st)<number)
+  if (FAT_fwrite(data,size,number,st)<number)
     screenshot_write_error = true; // CPhipps - made non-fatal
 }
 
