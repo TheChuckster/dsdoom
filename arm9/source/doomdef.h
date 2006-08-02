@@ -195,6 +195,7 @@ typedef enum {
 
 // Ammunition types defined.
 typedef enum {
+  am_negative = -1, // required to make enum type signed 
   am_clip,    // Pistol / chaingun ammo.
   am_shell,   // Shotgun / double barreled shotgun.
   am_cell,    // Plasma rifle, BFG.
