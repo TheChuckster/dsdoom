@@ -28,6 +28,8 @@
 #include "SDLnetsys.h"
 #include "SDL_net.h"
 
+#define DEBUG_NET
+
 /* Since the UNIX/Win32/BeOS code is so different from MacOS,
    we'll just have two completely different sections here.
 */

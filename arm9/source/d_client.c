@@ -93,6 +93,9 @@ void D_InitNetGame (void)
   {
     playeringame[consoleplayer = 0] = true;
   } else {
+  
+	StartWifi();
+  
     // Get game info from server
     packet_header_t *packet = Z_Malloc(1000, PU_STATIC, NULL);
     struct setup_packet_s *sinfo = (void*)(packet+1);

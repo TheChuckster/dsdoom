@@ -26,6 +26,7 @@
 #define _SDL_NET_H
 
 #include <nds.h>
+#define DEBUG_NET
 
 #define SDL_SwapLE16(X)	(X)
 #define SDL_SwapLE32(X)	(X)

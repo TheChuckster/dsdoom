@@ -36,6 +36,7 @@
 
 void I_Init(void);
 void I_SafeExit(int rc);
+void StartWifi();
 
 extern int broken_pipe;
 extern int (*I_GetTime)(void);

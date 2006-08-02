@@ -27,6 +27,8 @@
 #include "SDLnetsys.h"
 #include "SDL_net.h"
 
+#define DEBUG_NET
+
 static __inline__ u16 SDL_Swap16(u16 x)
 {
 	return((x<<8)|(x>>8));

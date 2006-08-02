@@ -30,6 +30,8 @@
 #include <string.h>
 #include <errno.h>
 
+#define DEBUG_NET
+
 /*
 #include <sys/time.h>
 #include <unistd.h>

@@ -25,6 +25,8 @@
 #include "SDLnetsys.h"
 #include "SDL_net.h"
 
+#define DEBUG_NET
+
 /* The network API for TCP sockets */
 
 /* Since the UNIX/Win32/BeOS code is so different from MacOS,

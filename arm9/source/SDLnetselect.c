@@ -27,6 +27,8 @@
 #include "SDLnetsys.h"
 #include "SDL_net.h"
 
+#define DEBUG_NET
+
 /* The select() API for network sockets */
 
 struct SDLNet_Socket {
