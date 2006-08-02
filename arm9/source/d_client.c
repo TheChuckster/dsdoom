@@ -86,15 +86,13 @@ void D_InitNetGame (void)
   i = M_CheckParm("-net");
   if (i && i < myargc-1) i++;
 
+  //netgame = server = true;
+  netgame = server = false;
 
-/*
-  if (!(netgame = server =  !!i)) {
+  if (!netgame)
+  {
     playeringame[consoleplayer = 0] = true;
   } else {
-  */
-  
-  netgame = server = true;
-  
     // Get game info from server
     packet_header_t *packet = Z_Malloc(1000, PU_STATIC, NULL);
     struct setup_packet_s *sinfo = (void*)(packet+1);
@@ -152,11 +150,7 @@ iprintf("I_InitNetwork()\n");
       }
     }
     Z_Free(packet);
-	
-	/*
   }
-  */
-  
   
   localcmds = netcmds[displayplayer = consoleplayer];
   for (i=0; i<numplayers; i++)
