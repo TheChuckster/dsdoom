@@ -386,8 +386,6 @@ static void D_DoomLoop(void)
       if (players[displayplayer].mo) // cph 2002/08/10
 	S_UpdateSounds(players[displayplayer].mo);// move positional sounds
 	
-	UpdateSound();
-
     // Update display, next frame, with current state.
     D_Display();
 /*

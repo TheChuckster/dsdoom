@@ -164,14 +164,34 @@ int addsfx(int sfxid, int channel)
 
       /* Find padded length */
     len -= 8;
+    int cached = W_LumpIsCached(lump);
     channelinfo[channel].data = W_CacheLumpNum(lump);
 
       /* Set pointer to end of raw data. */
     channelinfo[channel].enddata = channelinfo[channel].data + len - 1;
     channelinfo[channel].samplerate = (channelinfo[channel].data[3]<<8)+channelinfo[channel].data[2];
     channelinfo[channel].data += 8; /* Skip header */
-    }
 
+	if (!cached) {
+		// convert unsigned sample to signed
+		int samplelen = len;
+		u8 *ptr = channelinfo[channel].data; 
+		while ( samplelen-- ) {
+			ptr[samplelen] ^= 0x80;
+		}
+		DC_FlushRange(channelinfo[channel].data, len);
+	}
+	TransferSoundData audiotransfer = {
+		channelinfo[channel].data, // Sample address
+		len,	// Sample length
+		channelinfo[channel].samplerate,  // Sample rate
+		127,	// Volume
+		64,	// Panning
+		1	// Format
+	};
+	
+	playSound(&audiotransfer);
+    }
   channelinfo[channel].stepremainder = 0;
     // Should be gametic, I presume.
   channelinfo[channel].starttime = gametic;

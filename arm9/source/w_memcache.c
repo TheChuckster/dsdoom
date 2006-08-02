@@ -158,3 +158,7 @@ void W_UnlockLumpNum(int lump)
     Z_ChangeTag(cachelump[lump].cache, PU_CACHE);
 }
 
+int W_LumpIsCached( int lump) {
+
+	return cachelump[lump].cache;
+}

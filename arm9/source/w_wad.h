@@ -129,6 +129,7 @@ void    W_ReadLump (int lump, void *dest);
 // CPhipps - modified for 'new' lump locking
 const void* W_CacheLumpNum (int lump);
 void    W_UnlockLumpNum(int lump);
+int W_LumpIsCached( int lump);
 
 // CPhipps - convenience macros
 //#define W_CacheLumpNum(num) (W_CacheLumpNum)((num),1)
