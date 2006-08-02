@@ -34,6 +34,8 @@
  *-----------------------------------------------------------------------------
  */
 
+#include "config.h"
+
 #include "doomtype.h"
 #include "doomstat.h"
 #include "d_net.h"
@@ -51,7 +53,6 @@
 #include "m_argv.h"
 #include "lprintf.h"
 
-#include "config.h"
 #include <sys/types.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -85,29 +86,43 @@ void D_InitNetGame (void)
   i = M_CheckParm("-net");
   if (i && i < myargc-1) i++;
 
+
+/*
   if (!(netgame = server =  !!i)) {
     playeringame[consoleplayer = 0] = true;
   } else {
+  */
+  
+  
     // Get game info from server
     packet_header_t *packet = Z_Malloc(1000, PU_STATIC, NULL);
     struct setup_packet_s *sinfo = (void*)(packet+1);
   struct { packet_header_t head; short pn; } PACKEDATTR initpacket;
 
+iprintf("I_InitNetwork()\n");
     I_InitNetwork();
   udp_socket = I_Socket(0);
-  I_ConnectToServer(myargv[i]);
+  //I_ConnectToServer(myargv[i]);
+  iprintf("I_ConnectToServer()\n");
+  if (I_ConnectToServer("128.39.147.76:5030") != 0) iprintf("FAILURE!\n");
+  iprintf("Connected?\n");
 
     do
     {
+	iprintf("Send Init Packet\n");
       do { 
 	// Send init packet
 	initpacket.pn = doom_htons(wanted_player_number);
 	packet_set(&initpacket.head, PKT_INIT, 0);
 	I_SendPacket(&initpacket.head, sizeof(initpacket));
+	iprintf("Wait for packet\n");
 	I_WaitForPacket(5000);
+	iprintf("Done\n");
       } while (!I_GetPacket(packet, 1000));
+	  iprintf("Got it!\n");
       if (packet->type == PKT_DOWN) I_Error("Server aborted the game");
     } while (packet->type != PKT_SETUP);
+	iprintf("Out of loop!\n");
 
     // Once we have been accepted by the server, we should tell it when we leave
     atexit(D_QuitNetGame);
@@ -136,7 +151,12 @@ void D_InitNetGame (void)
       }
     }
     Z_Free(packet);
+	
+	/*
   }
+  */
+  
+  
   localcmds = netcmds[displayplayer = consoleplayer];
   for (i=0; i<numplayers; i++)
     playeringame[i] = true;
@@ -432,6 +452,8 @@ static void CheckQueuedPackets(void)
   }
 }
 #endif // HAVE_NET
+
+/*
 void TryRunTics (void)
 {
 	int runtics;
@@ -470,7 +492,8 @@ void TryRunTics (void)
 		gametic++;
 	}
 }
-/*
+*/
+
 void TryRunTics (void)
 {
   int runtics;
@@ -485,17 +508,17 @@ void TryRunTics (void)
 #endif
     runtics = (server ? remotetic : maketic) - gametic;
     if (!runtics) {
-//      if (server) I_WaitForPacket(ms_to_next_tick);
-//      else I_uSleep(ms_to_next_tick*1000);
-I_uSleep(ms_to_next_tick*1000);
+      if (server) I_WaitForPacket(ms_to_next_tick);
+      else I_uSleep(ms_to_next_tick*1000);
+
       if (I_GetTime() - entertime > 10) {
         remotesend--;
-//	if (server) {
-//	  char buf[sizeof(packet_header_t)+1];
-	  //packet_set((packet_header_t *)buf, PKT_RETRANS, remotetic);
-	  //buf[sizeof(buf)-1] = consoleplayer;
-	  //I_SendPacket((packet_header_t *)buf, sizeof buf);
-	//}
+	if (server) {
+	  char buf[sizeof(packet_header_t)+1];
+	  packet_set((packet_header_t *)buf, PKT_RETRANS, remotetic);
+	  buf[sizeof(buf)-1] = consoleplayer;
+	  I_SendPacket((packet_header_t *)buf, sizeof buf);
+	}
         M_Ticker(); return;
       }
     } else break;
@@ -515,7 +538,7 @@ I_uSleep(ms_to_next_tick*1000);
 #endif
   }
 }
-*/
+
 #ifdef HAVE_NET
 void D_QuitNetGame (void)
 {

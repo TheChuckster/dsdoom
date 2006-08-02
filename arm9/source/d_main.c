@@ -33,6 +33,7 @@
  *-----------------------------------------------------------------------------
  */
 
+#include "config.h"
 
 #ifdef _MSC_VER
 #define    F_OK    0    /* Check for file existence */

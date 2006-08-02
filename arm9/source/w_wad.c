@@ -131,10 +131,12 @@ static void W_AddFile(wadfile_info_t *wadfile)
   // open the file and add to directory
   wadfile->handle = FAT_fopen(wadfile->name, "r+");
 
+/*
 #ifdef HAVE_NET
   if (wadfile->handle == -1 && D_NetGetWad(wadfile->name)) // CPhipps
     wadfile->handle = open(wadfile->name,O_RDONLY | O_BINARY);
 #endif
+*/
     
   if (wadfile->handle == -1) 
     {

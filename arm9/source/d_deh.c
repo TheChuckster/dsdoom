@@ -33,6 +33,8 @@
  *--------------------------------------------------------------------*/
 
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
+#include "config.h"
+
 #include "doomdef.h"
 #include "doomtype.h"
 #include "doomstat.h"

@@ -31,7 +31,7 @@
 #include "config.h"
 
 #ifdef USE_SDL_NET
- #include "SDL.h"
+ //#include "SDL.h"
  #include "SDL_net.h"
  #define UDP_SOCKET UDPsocket
  #define UDP_PACKET UDPpacket
@@ -52,7 +52,7 @@ void I_SendPacket(packet_header_t* packet, size_t len);
 void I_WaitForPacket(int ms);
 
 #ifdef USE_SDL_NET
-UDP_SOCKET I_Socket(Uint16 port);
+UDP_SOCKET I_Socket(u16 port);
 int I_ConnectToServer(const char *serv);
 UDP_CHANNEL I_RegisterPlayer(IPaddress *ipaddr);
 void I_UnRegisterPlayer(UDP_CHANNEL channel);

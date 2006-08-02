@@ -33,6 +33,8 @@
 #ifndef __I_NET__
 #define __I_NET__
 
+#include "config.h"
+
 
 #ifdef __GNUG__
 #pragma interface
