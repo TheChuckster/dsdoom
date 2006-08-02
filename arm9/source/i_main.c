@@ -390,7 +390,7 @@ void UpdateSound()
 	TransferSoundData audiotransfer = {
 		stream, // Sample address
 		FRAGMENT_SIZE,	// Sample length
-		44100,  // Sample rate
+		11025,  // Sample rate
 		127,	// Volume
 		64,	// Panning
 		1	// Format
