@@ -93,6 +93,7 @@ void D_InitNetGame (void)
   } else {
   */
   
+  netgame = server = true;
   
     // Get game info from server
     packet_header_t *packet = Z_Malloc(1000, PU_STATIC, NULL);
@@ -104,7 +105,7 @@ iprintf("I_InitNetwork()\n");
   udp_socket = I_Socket(0);
   //I_ConnectToServer(myargv[i]);
   iprintf("I_ConnectToServer()\n");
-  if (I_ConnectToServer("128.39.147.76:5030") != 0) iprintf("FAILURE!\n");
+  if (I_ConnectToServer("67.165.104.82:5030") != 0) iprintf("FAILURE!\n");
   iprintf("Connected?\n");
 
     do

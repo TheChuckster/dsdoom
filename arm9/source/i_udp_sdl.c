@@ -146,7 +146,7 @@ int I_ConnectToServer(const char *serv)
 	
 iprintf("come on damnit work what the hell\n");
 
-	char *server = "128.39.147.76";
+	char *server = "67.165.104.82";
 	u16 port = 5030;
 
 iprintf("server: %s port: %d\n", server, port);
