@@ -145,7 +145,7 @@ static void stopchan(int i)
 //  (eight, usually) of internal channels.
 // Returns a handle.
 //
-int addsfx(int sfxid, int channel)
+int addsfx(int sfxid, int channel, int vol, int sep)
 {
     int   oldest = gametic;
     int   oldestnum = 0;
@@ -185,8 +185,8 @@ int addsfx(int sfxid, int channel)
 		channelinfo[channel].data, // Sample address
 		len,	// Sample length
 		channelinfo[channel].samplerate,  // Sample rate
-		127,	// Volume
-		64,	// Panning
+		vol,	// Volume
+		sep,	// Panning
 		1	// Format
 	};
 	
@@ -345,7 +345,7 @@ int I_StartSound(int id, int channel, int vol, int sep, int pitch, int priority)
 
     //SDL_LockAudio();
   // Returns a handle (not used).
-  handle = addsfx(id,channel);
+  handle = addsfx(id,channel,vol,sep);
 #ifdef RANGECHECK
   if (handle>=MAX_CHANNELS)
     I_Error("I_StartSound: handle out of range");

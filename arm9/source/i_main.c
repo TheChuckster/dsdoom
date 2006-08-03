@@ -385,7 +385,7 @@ u8* stream;
 
 void UpdateSound()
 {
-	I_UpdateSound(NULL, stream, FRAGMENT_SIZE);
+	/*I_UpdateSound(NULL, stream, FRAGMENT_SIZE);
 
 	TransferSoundData audiotransfer = {
 		stream, // Sample address
@@ -396,7 +396,7 @@ void UpdateSound()
 		1	// Format
 	};
 	
-	playSound(&audiotransfer);
+	playSound(&audiotransfer);*/
 }
 
 void StartWifi()
@@ -495,7 +495,7 @@ int main(int argc, char **argv)
 		iprintf("FAT_InitFiles(): initialized.\n");
 	}
 	
-	setGenericSound(11025, 127, 64, 0);
+	setGenericSound(11025, 127, 64, 1);
 	stream = malloc(FRAGMENT_SIZE*3*sizeof(u8));
 	
   /* Version info */
