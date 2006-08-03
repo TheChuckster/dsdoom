@@ -87,8 +87,8 @@ void D_InitNetGame (void)
   if (i && i < myargc-1) i++;
 
   //netgame = server = true;
-  netgame = server = false;
-
+  netgame = server = true;
+  
   if (!netgame)
   {
     playeringame[consoleplayer = 0] = true;
@@ -106,7 +106,7 @@ iprintf("I_InitNetwork()\n");
   udp_socket = I_Socket(0);
   //I_ConnectToServer(myargv[i]);
   iprintf("I_ConnectToServer()\n");
-  if (I_ConnectToServer("67.165.104.82:5030") != 0) iprintf("FAILURE!\n");
+  if (I_ConnectToServer("192.168.0.1:5030") != 0) iprintf("FAILURE!\n");
   iprintf("Connected?\n");
 
     do

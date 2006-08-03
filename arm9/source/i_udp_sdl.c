@@ -121,19 +121,18 @@ IPaddress serverIP;
 
 int I_ConnectToServer(const char *serv)
 {
-//  char server[500], *p;
-  //u16 port;
+  char server[500], *p;
+  u16 port;
   
   iprintf("enter\n");
 
   /* Split serv into address and port */
-/*  if (strlen(serv)>500)
+  if (strlen(serv)>500)
   {
   iprintf("ARGH!\n");
   return 0;
-  }*/
+  }
   
-  /*
   strcpy(server,serv);
   p = strchr(server, ':');
   if(p)
@@ -142,12 +141,10 @@ int I_ConnectToServer(const char *serv)
     port = atoi(p);
   }
   else
-    port = 5030; // Default server port*/
+    port = 5030; // Default server port
 	
 iprintf("come on damnit work what the hell\n");
 
-	char *server = "67.165.104.82";
-	u16 port = 5030;
 
 iprintf("server: %s port: %d\n", server, port);
 
