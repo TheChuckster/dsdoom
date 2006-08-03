@@ -122,7 +122,7 @@ channel_info_t channelinfo[MAX_CHANNELS];
 int   steptable[256];
 
 // Volume lookups.
-int   vol_lookup[128*256];
+//int   vol_lookup[128*256];
 
 /* cph
  * stopchan
@@ -151,7 +151,7 @@ int addsfx(int sfxid, int channel, int vol, int sep)
     int   oldestnum = 0;
 
   stopchan(channel);
-
+ 
   // We will handle the new SFX.
     // Set pointer to raw data.
     {
@@ -244,8 +244,8 @@ static void updateSoundParams(int handle, int volume, int seperation, int pitch)
 
     // Get the proper lookup table piece
     //  for this volume level???
-  channelinfo[slot].leftvol_lookup = &vol_lookup[leftvol*256];
-  channelinfo[slot].rightvol_lookup = &vol_lookup[rightvol*256];
+//  channelinfo[slot].leftvol_lookup = &vol_lookup[leftvol*256];
+//  channelinfo[slot].rightvol_lookup = &vol_lookup[rightvol*256];
 }
 
 void I_UpdateSoundParams(int handle, int volume, int seperation, int pitch)
@@ -294,7 +294,7 @@ void I_SetChannels()
     {
       // proff - made this a little bit softer, because with
       // full volume the sound clipped badly
-      vol_lookup[i*256+j] = (i*(j-128)*256)/191;
+//      vol_lookup[i*256+j] = (i*(j-128)*256)/191;
       //vol_lookup[i*256+j] = (i*(j-128)*256)/127;
     }
 }
