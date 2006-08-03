@@ -1675,7 +1675,7 @@ void D_DoomMain(void)
 	//connect to the PC stub, initialise the debugger
 	//debugger_connect_tcp(192, 168, 0, 1);
 	//debugger_init();					//from here on in you can get the debugger's attention
-
+	defaultExceptionHandler();
 
   D_DoomLoop ();  // never returns
 }
