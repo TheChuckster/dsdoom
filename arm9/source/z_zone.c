@@ -44,6 +44,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <malloc.h>
 
 #include "z_zone.h"
 #include "doomstat.h"
@@ -123,17 +124,13 @@ void Z_DrawStats(void)            // Print allocation statistics
   if (gamestate != GS_LEVEL)
     return;
 
-  doom_printf("%-5i\t%6.01f%%\tstatic\n"
-          "%-5i\t%6.01f%%\tpurgable\n"
-          "%-5i\t%6.01f%%\tfree\n"
-          "%-5li\t\ttotal\n",
-          active_memory,
-          active_memory*s,
-          purgable_memory,
-          purgable_memory*s,
-          (free_memory + memory_size),
-          (free_memory + memory_size)*s,
-          total_memory
+	struct mallinfo i = mallinfo();
+	
+	doom_printf("%i\t\tarena\n%i\t\tordblks\n%i\t\tuordblks\n%i\t\tfordblks\n",
+          i.arena,
+          i.ordblks,
+          i.uordblks,
+          i.fordblks
           );
 }
 
