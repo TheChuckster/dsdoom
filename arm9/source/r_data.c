@@ -760,13 +760,13 @@ void R_InitTranMap(int progress)
         unsigned char pct;
         unsigned char playpal[256];
       } cache;
-      FAT_FILE *cachefp = fopen(strcat(strcpy(fname, I_DoomExeDir()), "/tranmap.dat"),"r+");
+      FAT_FILE *cachefp = FAT_fopen(strcat(strcpy(fname, I_DoomExeDir()), "/tranmap.dat"),"r+");
 
       main_tranmap = my_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
 
       // Use cached translucency filter if it's available
 
-      if (!cachefp ? cachefp = fopen(fname,"wb") , 1 :
+      if (!cachefp ? cachefp = FAT_fopen(fname,"wb") , 1 :
           FAT_fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
