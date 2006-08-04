@@ -63,6 +63,7 @@
 #include "sounds.h"
 #include "w_wad.h"
 #include "lprintf.h"
+#include "d_player.h"
 
 #ifdef GL_DOOM
 #include "gl_struct.h"
@@ -327,9 +328,15 @@ void I_StartTic (void)
 	
 	if (keys & KEY_Y)
 	{
-		weapon_index++;
-		if (weapon_index >= 9) weapon_index = 0;
+		bool good = false;
 		
+		while (!good)
+		{
+			weapon_index++;
+			if (weapon_index >= NUMWEAPONS) weapon_index = 0;
+			if (players[displayplayer].weaponowned[weapon_index]) good = true;
+		}
+	
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = weapons[weapon_index];
