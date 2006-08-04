@@ -37,6 +37,11 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#ifdef WIFI_DEBUG
+#include <user_debugger.h>
+#endif
+
 #include "doomdef.h"
 #include "m_argv.h"
 #include "d_main.h"
@@ -62,6 +67,13 @@
 #include "gba_nds_fat.h"
 #include <dswifi9.h>
 #define		VCOUNT		(*((u16 volatile *) 0x04000006))
+
+#ifdef WIFI_DEBUG
+void debug_print_stub(char *string)
+{
+	printf(string);
+}
+#endif
 
 //---------------------------------------------------------------------------------
 // Dswifi stub functions
@@ -401,6 +413,10 @@ void UpdateSound()
 
 void StartWifi()
 {
+#ifdef WIFI_DEBUG
+	set_verbosity(VERBOSE_INFO | VERBOSE_ERROR | VERBOSE_TRACE);
+#endif
+
 #ifdef WIFI
 	{ // send fifo message to initialize the arm7 wifi
 		REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR; // enable & clear FIFO
@@ -447,6 +463,12 @@ void StartWifi()
 			}
 		}
 	} // if connected, you can now use the berkley sockets interface to connect to the internet!
+	
+#ifdef WIFI_DEBUG
+	debugger_connect_tcp(192, 168, 1, 105);	//your IP here
+	debugger_init();
+	user_debugger_update();
+#endif
 #endif
 }
 

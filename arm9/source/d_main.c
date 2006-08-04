@@ -354,13 +354,18 @@ static const char *auto_shot_fname;
 
 extern boolean demorecording;
 
+#ifdef WIFI_DEBUG
 #include <user_debugger.h>
+#endif
 
 static void D_DoomLoop(void)
 {
   for (;;)
     {
-      //user_debugger_update();
+#ifdef WIFI_DEBUG
+      user_debugger_update();
+#endif
+
       // frame syncronous IO operations
       I_StartFrame ();
 
@@ -1656,26 +1661,11 @@ void D_DoomMainSetup(void)
 //
 // D_DoomMain
 //
-
-
-void debug_print_stub(char* string)
-{
-	iprintf(string);
-}
-
 void D_DoomMain(void)
 {
   D_DoomMainSetup(); // CPhipps - setup out of main execution stack
 
-	//start up the wireless, connect to the AP
-	//set_verbosity(VERBOSE_INFO | VERBOSE_ERROR);
-	//wireless_init(1);
-	//wireless_connect();
-
-	//connect to the PC stub, initialise the debugger
-	//debugger_connect_tcp(192, 168, 0, 1);
-	//debugger_init();					//from here on in you can get the debugger's attention
-	defaultExceptionHandler();
+  defaultExceptionHandler();
 
   D_DoomLoop ();  // never returns
 }
