@@ -70,8 +70,8 @@ static int       remotetic; // Tic expected from the remote
 static int       remotesend; // Tic expected by the remote
 ticcmd_t         netcmds[MAXPLAYERS][BACKUPTICS];
 static ticcmd_t* localcmds;
-/*static unsigned          numqueuedpackets;
-static packet_header_t** queuedpacket;*/
+static unsigned          numqueuedpackets;
+static packet_header_t** queuedpacket;
 int maketic;
 int ticdup = 1;
 static int xtratics = 0;
@@ -90,7 +90,7 @@ void D_InitNetGame (void)
 	i = M_CheckParm("-net");
 	if (i && i < myargc-1) i++;
 
-	netgame = server = false;
+	netgame = server = true;
   
 	if (!netgame)
 	{
@@ -113,7 +113,7 @@ void D_InitNetGame (void)
 		
 		iprintf("I_ConnectToServer()\n");
 		
-		if (I_ConnectToServer("67.165.104.82:5030") != 0) iprintf("FAILURE!\n");
+		if (I_ConnectToServer("192.168.0.1:5030") != 0) iprintf("FAILURE!\n");
 		
 		iprintf("Connected?\n");
 
@@ -302,9 +302,9 @@ void NetUpdate(void)
 	if (server)
 	{ // Receive network packets
 		size_t recvlen;
-		packet_header_t *packet = Z_Malloc(10000, PU_STATIC, NULL);
+		packet_header_t *packet = Z_Malloc(500, PU_STATIC, NULL);
     
-		while ((recvlen = I_GetPacket(packet, 10000)))
+		while ((recvlen = I_GetPacket(packet, 500)))
 		{
 			switch(packet->type)
 			{
@@ -317,6 +317,7 @@ void NetUpdate(void)
 				
 				if (ptic > (unsigned)remotetic)
 				{ // Missed some
+			iprintf("PKT_RETRANS request\n");
 					packet_set(packet, PKT_RETRANS, remotetic);
 					*(byte*)(packet+1) = consoleplayer;
 					I_SendPacket(packet, sizeof(*packet)+1);
@@ -343,10 +344,12 @@ void NetUpdate(void)
 			break;
 			
 			case PKT_RETRANS: // Resend request
+			iprintf("PKT_RETRANS\n");
 				remotesend = doom_ntohl(packet->tic);
 			break;
 			
 			case PKT_DOWN: // Server downed
+			iprintf("PKT_DOWN\n");
 			{
 				int j;
 				for (j=0; j<MAXPLAYERS; j++)
@@ -359,14 +362,17 @@ void NetUpdate(void)
 			
 			case PKT_EXTRA: // Misc stuff
 			case PKT_QUIT: // Player quit
+			
+			iprintf("PKT_EXTRA, PKT_QUIT\n");
   // Queue packet to be processed when its tic time is reached
-/*  queuedpacket = Z_Realloc(queuedpacket, ++numqueuedpackets * sizeof *queuedpacket,
+  queuedpacket = Z_Realloc(queuedpacket, ++numqueuedpackets * sizeof *queuedpacket,
          PU_STATIC, NULL);
   queuedpacket[numqueuedpackets-1] = Z_Malloc(recvlen, PU_STATIC, NULL);
-  memcpy(queuedpacket[numqueuedpackets-1], packet, recvlen);*/
+  memcpy(queuedpacket[numqueuedpackets-1], packet, recvlen);
 			break;
 			
 			case PKT_BACKOFF:
+			iprintf("PKT_BACKOFF\n");
         /* cph 2003-09-18 -
 	 * The server sends this when we have got ahead of the other clients. We should
 	 * stall the input side on this client, to allow other clients to catch up. */
@@ -404,7 +410,6 @@ void NetUpdate(void)
 		{ // Send the tics to the server
 			int sendtics;
 			remotesend -= xtratics;
-			
 			if (remotesend < 0) remotesend = 0;
 			
 			sendtics = maketic - remotesend;
@@ -431,7 +436,7 @@ void NetUpdate(void)
 		}
 	}
 }
-#else
+#else // HAVE_NET
 
 void D_BuildNewTiccmds()
 {
@@ -472,7 +477,7 @@ void D_NetSendMisc(netmisctype_t type, size_t len, void* data)
 
 static void CheckQueuedPackets(void)
 {
-/*
+
   int i;
   for (i=0; (unsigned)i<numqueuedpackets; i++)
     if (doom_ntohl(queuedpacket[i]->tic) <= gametic)
@@ -519,7 +524,7 @@ static void CheckQueuedPackets(void)
 
     Z_Free(queuedpacket);
     numqueuedpackets = newnum; queuedpacket = newqueue;
-  }*/
+  }
 }
 #endif // HAVE_NET
 
