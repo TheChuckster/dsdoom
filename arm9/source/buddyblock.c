@@ -37,7 +37,7 @@ void *blockAlloc( u32 size) {
 	blockheader_t *block1, *block2;
 
 	while ( buckets[bucket] == 0 && bucket < topBlock ) bucket++;
-	while ( blocksize[bucket] < (size + sizeof(blockheader_t)) && bucket < 7) bucket++;	
+	while ( blocksize[bucket] < (size + sizeof(blockheader_t)) && bucket < topBlock) bucket++;	
 
 	if ( buckets[bucket] == 0 ) {
 		I_Error ("buddyblock: Failure trying to allocate %u bytes\n",size);
@@ -53,14 +53,16 @@ void *blockAlloc( u32 size) {
 				buckets[bucket]->prevblock = 0;
 
 			bucket--;
-			block2 = ((void *)block1) + blocksize[bucket];	
+			block2 = (blockheader_t *)(((char *)block1) + blocksize[bucket]);	
 
 			block1->nextblock = block2;
+			block1->free = 1;
 			block1->prevblock = 0;
 			block1->size = bucket;
 			block1->tag = 0xbeef;
 
 			block2->prevblock = block1;
+			block2->free = 1;
 			block2->size = 	bucket;
 			block2->nextblock = buckets[bucket];
 			block2->tag = 0xbeef;
@@ -91,24 +93,29 @@ void blockFree( void * mem) {
 
 	blockheader_t *block = (blockheader_t *)(mem - sizeof(blockheader_t));
 	
-	if ( block->tag != 0xdead )
-		I_Error ("buddyblock: freeing corrupted block\n");
+	if ( block->tag != 0xdead /*&& block->tag != 0xbeef*/) 
+		I_Error ("buddyblock: freeing corrupted block\naddress = %p\nsize=%d\ntag=%04x\n", block, block->size,block->tag);
 
+	if (block->tag == 0xbeef ) return;
 	
 	while(1) {
 		if ( block->size < topBlock ) {
-			u32 offset = (void *)block - (void *)memBase;
+			u32 offset = (u32)block - (u32)memBase;
 
 			if ( (offset / blocksize[block->size]) & 1)
-				buddy = (blockheader_t *)(((void *)block) - blocksize[block->size]);
+				buddy = (blockheader_t *)(((u32)block) - blocksize[block->size]);
 			else
-				buddy = (blockheader_t *)(((void *)block) + blocksize[block->size]);
+				buddy = (blockheader_t *)(((u32)block) + blocksize[block->size]);
 		
 			if ( buddy->free && buddy->size == block->size) {
 				if ( buddy == buckets[buddy->size] ) {
 					buckets[buddy->size] = buddy->nextblock;
 					if ( buckets[buddy->size] )
 						buckets[buddy->size]->prevblock = 0;
+				} else {
+					blockheader_t *temp = buddy->prevblock;
+					temp->nextblock = buddy->nextblock;
+					temp->nextblock->prevblock = temp; 
 				}
 				
 				if (block > buddy ) {

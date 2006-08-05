@@ -427,7 +427,7 @@ void StartWifi()
 		*((volatile u16 *)0x0400010E) = 0; // disable timer3
 		
 //		irqInit(); 
-		initBuddyBlocks(7);
+		initBuddyBlocks(5);
 		irqSet(IRQ_TIMER3, Timer_50ms); // setup timer IRQ
 		irqEnable(IRQ_TIMER3);
 		irqSet(IRQ_FIFO_NOT_EMPTY, arm9_fifo); // setup fifo IRQ
