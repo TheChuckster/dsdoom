@@ -192,24 +192,6 @@ static void I_SignalHandler(int s)
   I_Error("I_SignalHandler: %s", buf);*/
 }
 
-void exceptionHandler() {
-
-	iprintf("dsdoom has crashed\n");
-
-	while(1) {
-		scanKeys();
-		if (keysDown() & KEY_START) break;
-
-		while ( REG_VCOUNT != 192 );
-		while ( REG_VCOUNT == 192 );
-		
-	}	
-	char buf[2048];
-    Z_DumpHistory(buf);
-	iprintf(buf);
-	while(1);	
-}
-
 /* killough 2/22/98: Add support for ENDBOOM, which is PC-specific
  *
  * this converts BIOS color codes to ANSI codes.
@@ -427,7 +409,7 @@ void StartWifi()
 		*((volatile u16 *)0x0400010E) = 0; // disable timer3
 		
 //		irqInit(); 
-		initBuddyBlocks(6);
+		initBuddyBlocks(5);
 		irqSet(IRQ_TIMER3, Timer_50ms); // setup timer IRQ
 		irqEnable(IRQ_TIMER3);
 		irqSet(IRQ_FIFO_NOT_EMPTY, arm9_fifo); // setup fifo IRQ

@@ -1,3 +1,38 @@
+/* Emacs style mode select   -*- C++ -*-
+ *-----------------------------------------------------------------------------
+ *  dsdoom based on 
+ *
+ *  PrBoom a Doom port merged with LxDoom and LSDLDoom
+ *  based on BOOM, a modified and improved DOOM engine
+ *  Copyright (C) 1999 by
+ *  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+ *  Copyright (C) 1999-2000 by
+ *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
+ *
+ *  Copyright (C) 2006 by
+ *  Dave Murphy
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ * DESCRIPTION:
+ *      buddy block allocator used for sgIP_malloc
+ *
+ *
+ *-----------------------------------------------------------------------------
+ */
 #include "buddyblock.h"
 
 typedef struct tag_blockheader_t {
@@ -17,14 +52,13 @@ int topBlock;
 
 void initBuddyBlocks(int startBlock) {
 
-	int i;
-	for ( i = 0; i < startBlock; i++) {
-		buckets[i]=0;
-	}
-	startMem = malloc(blocksize[startBlock] + blocksize[startBlock] - 1);
+	if (startBlock > 7)
+		I_Error ("buddyblock: inital pool too large\n");
 
-	blockheader_t *alignMem = (blockheader_t*)(((u32)startMem + blocksize[startBlock] - 1) & -blocksize[startBlock]);
-	
+//	startMem = malloc(blocksize[startBlock] + blocksize[startBlock] - 1);
+//	blockheader_t *alignMem = (blockheader_t*)(((u32)startMem + blocksize[startBlock] - 1) & -blocksize[startBlock]);
+	startMem = malloc(blocksize[startBlock]);
+	blockheader_t *alignMem = startMem;
 	alignMem->size = startBlock;
 	alignMem->free = 1;
 	alignMem->tag = 0xbeef;
@@ -98,7 +132,7 @@ void blockFree( void * mem) {
 
 	blockheader_t *block = (blockheader_t *)((u32)mem - sizeof(blockheader_t));
 	
-	if ( block->tag != 0xdead /*&& block->tag != 0xbeef*/) 
+	if ( block->tag != 0xdead ) 
 		I_Error ("buddyblock: freeing corrupted block\naddress = %p\nsize=%d\ntag=%04x\n", block, block->size,block->tag);
 
 	while(1) {
