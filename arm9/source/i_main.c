@@ -75,10 +75,12 @@ void debug_print_stub(char *string)
 }
 #endif
 
+#include "buddyblock.h"
+
 //---------------------------------------------------------------------------------
 // Dswifi stub functions
-void * sgIP_malloc(int size) { return malloc(size); }
-void sgIP_free(void * ptr) { free(ptr); }
+void * sgIP_malloc(int size) { return blockAlloc(size); }
+void sgIP_free(void * ptr) { blockFree(ptr); }
 
 // sgIP_dbgprint only needed in debug version
 void sgIP_dbgprint(char * txt, ...) {	}
@@ -190,7 +192,23 @@ static void I_SignalHandler(int s)
   I_Error("I_SignalHandler: %s", buf);*/
 }
 
+void exceptionHandler() {
 
+	iprintf("dsdoom has crashed\n");
+
+	while(1) {
+		scanKeys();
+		if (keysDown() & KEY_START) break;
+
+		while ( REG_VCOUNT != 192 );
+		while ( REG_VCOUNT == 192 );
+		
+	}	
+	char buf[2048];
+    Z_DumpHistory(buf);
+	iprintf(buf);
+	while(1);	
+}
 
 /* killough 2/22/98: Add support for ENDBOOM, which is PC-specific
  *
@@ -392,25 +410,6 @@ void I_Quit (void)
 uid_t stored_euid = -1;
 #endif
 
-#define FRAGMENT_SIZE 2350
-u8* stream;
-
-void UpdateSound()
-{
-	/*I_UpdateSound(NULL, stream, FRAGMENT_SIZE);
-
-	TransferSoundData audiotransfer = {
-		stream, // Sample address
-		FRAGMENT_SIZE,	// Sample length
-		11025,  // Sample rate
-		127,	// Volume
-		64,	// Panning
-		1	// Format
-	};
-	
-	playSound(&audiotransfer);*/
-}
-
 void StartWifi()
 {
 #ifdef WIFI_DEBUG
@@ -428,6 +427,7 @@ void StartWifi()
 		*((volatile u16 *)0x0400010E) = 0; // disable timer3
 		
 //		irqInit(); 
+		initBuddyBlocks(7);
 		irqSet(IRQ_TIMER3, Timer_50ms); // setup timer IRQ
 		irqEnable(IRQ_TIMER3);
 		irqSet(IRQ_FIFO_NOT_EMPTY, arm9_fifo); // setup fifo IRQ
@@ -468,6 +468,8 @@ void StartWifi()
 	debugger_connect_tcp(192, 168, 1, 105);	//your IP here
 	debugger_init();
 	user_debugger_update();
+#else
+	setExceptionHandler(exceptionHandler);
 #endif
 #endif
 }
@@ -516,9 +518,6 @@ int main(int argc, char **argv)
 	} else {
 		iprintf("FAT_InitFiles(): initialized.\n");
 	}
-	
-	setGenericSound(11025, 127, 64, 1);
-	stream = malloc(FRAGMENT_SIZE*3*sizeof(u8));
 	
   /* Version info */
   lprintf(LO_INFO,"\n");
