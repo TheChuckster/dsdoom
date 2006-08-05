@@ -10,12 +10,17 @@ typedef struct tag_blockheader_t {
 
 
 blockheader_t *buckets[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-int blocksize[9] = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072 };
+int blocksize[8] = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536 };
 void *memBase;
 void *startMem;
 int topBlock;
 
 void initBuddyBlocks(int startBlock) {
+
+	int i;
+	for ( i = 0; i < startBlock; i++) {
+		buckets[i]=0;
+	}
 	startMem = malloc(blocksize[startBlock] + blocksize[startBlock] - 1);
 
 	blockheader_t *alignMem = (blockheader_t*)(((u32)startMem + blocksize[startBlock] - 1) & -blocksize[startBlock]);
@@ -91,13 +96,11 @@ void blockFree( void * mem) {
 
 	blockheader_t *buddy;
 
-	blockheader_t *block = (blockheader_t *)(mem - sizeof(blockheader_t));
+	blockheader_t *block = (blockheader_t *)((u32)mem - sizeof(blockheader_t));
 	
 	if ( block->tag != 0xdead /*&& block->tag != 0xbeef*/) 
 		I_Error ("buddyblock: freeing corrupted block\naddress = %p\nsize=%d\ntag=%04x\n", block, block->size,block->tag);
 
-	if (block->tag == 0xbeef ) return;
-	
 	while(1) {
 		if ( block->size < topBlock ) {
 			u32 offset = (u32)block - (u32)memBase;
@@ -113,9 +116,11 @@ void blockFree( void * mem) {
 					if ( buckets[buddy->size] )
 						buckets[buddy->size]->prevblock = 0;
 				} else {
-					blockheader_t *temp = buddy->prevblock;
-					temp->nextblock = buddy->nextblock;
-					temp->nextblock->prevblock = temp; 
+					blockheader_t *prev = buddy->prevblock;
+					blockheader_t *next = buddy->nextblock;
+					prev->nextblock = next;
+					if (next)
+						next->prevblock = prev; 
 				}
 				
 				if (block > buddy ) {

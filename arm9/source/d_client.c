@@ -317,7 +317,6 @@ void NetUpdate(void)
 				
 				if (ptic > (unsigned)remotetic)
 				{ // Missed some
-			iprintf("PKT_RETRANS request\n");
 					packet_set(packet, PKT_RETRANS, remotetic);
 					*(byte*)(packet+1) = consoleplayer;
 					I_SendPacket(packet, sizeof(*packet)+1);
@@ -344,7 +343,6 @@ void NetUpdate(void)
 			break;
 			
 			case PKT_RETRANS: // Resend request
-			iprintf("PKT_RETRANS\n");
 				remotesend = doom_ntohl(packet->tic);
 			break;
 			
@@ -363,7 +361,6 @@ void NetUpdate(void)
 			case PKT_EXTRA: // Misc stuff
 			case PKT_QUIT: // Player quit
 			
-			iprintf("PKT_EXTRA, PKT_QUIT\n");
   // Queue packet to be processed when its tic time is reached
   queuedpacket = Z_Realloc(queuedpacket, ++numqueuedpackets * sizeof *queuedpacket,
          PU_STATIC, NULL);
@@ -372,7 +369,6 @@ void NetUpdate(void)
 			break;
 			
 			case PKT_BACKOFF:
-			iprintf("PKT_BACKOFF\n");
         /* cph 2003-09-18 -
 	 * The server sends this when we have got ahead of the other clients. We should
 	 * stall the input side on this client, to allow other clients to catch up. */
