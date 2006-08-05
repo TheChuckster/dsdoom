@@ -595,8 +595,8 @@ void I_FinishUpdate (void)
 #ifndef GL_DOOM
       int h;
       int w;
-      char *src;
-      char *dest;
+      unsigned char *src;
+      unsigned char *dest;
 
       //dest=(char *)screen->pixels;
       src=screens[0];
@@ -605,7 +605,7 @@ void I_FinishUpdate (void)
 
 	h = 200;
 	w = 320;
-	dest = BG_GFX;
+	dest = (unsigned char *)BG_GFX;
       for (; h>0; h--)
       {
         //memcpy(dest,src,w);
@@ -715,7 +715,7 @@ void I_InitGraphics(void)
 void I_UpdateVideoMode(void)
 {
   unsigned int w, h;
-  int init_flags;
+//  int init_flags;
 
   lprintf(LO_INFO, "I_UpdateVideoMode: %dx%d (%s)\n", SCREENWIDTH, SCREENHEIGHT, use_fullscreen ? "fullscreen" : "nofullscreen");
 
