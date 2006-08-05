@@ -1665,8 +1665,6 @@ void D_DoomMain(void)
 {
   D_DoomMainSetup(); // CPhipps - setup out of main execution stack
 
-  defaultExceptionHandler();
-
   D_DoomLoop ();  // never returns
 }
 
