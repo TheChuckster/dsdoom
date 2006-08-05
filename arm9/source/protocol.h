@@ -50,7 +50,7 @@ typedef struct {
   byte checksum;       // Simple checksum of the entire packet
   byte type;           /* Type of packet */
   byte reserved[2];	/* Was random in prboom <=2.2.4, now 0 */
-  unsigned tic;        // Timestamp
+  unsigned int tic;        // Timestamp
 } PACKEDATTR packet_header_t;
 
 static inline void packet_set(packet_header_t* p, enum packet_type_e t, unsigned long tic)
