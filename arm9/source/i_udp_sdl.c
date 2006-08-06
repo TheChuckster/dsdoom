@@ -143,9 +143,6 @@ int I_ConnectToServer(const char *serv)
   else
     port = 5030; // Default server port
 	
-iprintf("come on damnit work what the hell\n");
-
-
 iprintf("server: %s port: %d\n", server, port);
 
   SDLNet_ResolveHost(&serverIP, server, port);
