@@ -43,18 +43,28 @@ typedef struct tag_blockheader_t {
 	struct tag_blockheader_t *prevblock;
 } blockheader_t;
 
+#define MAX_BLOCK 7
+#define SMALL_BLOCK 512
 
-blockheader_t *buckets[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-int blocksize[8] = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536 };
+blockheader_t *buckets[MAX_BLOCK];
+int blocksize[MAX_BLOCK];
 void *memBase;
 void *startMem;
 int topBlock;
 
 void initBuddyBlocks(int startBlock) {
 
-	if (startBlock > 7)
+	if (startBlock > MAX_BLOCK)
 		I_Error ("buddyblock: inital pool too large\n");
 
+	int i;
+	int blockbytes = SMALL_BLOCK;
+		
+	for ( i=0; i<MAX_BLOCK; i++ ) {
+		buckets[i] = 0;
+		blocksize[i] = blockbytes;
+		blockbytes *= 2; 
+	}
 //	startMem = malloc(blocksize[startBlock] + blocksize[startBlock] - 1);
 //	blockheader_t *alignMem = (blockheader_t*)(((u32)startMem + blocksize[startBlock] - 1) & -blocksize[startBlock]);
 	startMem = malloc(blocksize[startBlock]);
@@ -79,6 +89,17 @@ void *blockAlloc( u32 size) {
 	while ( blocksize[bucket] < (size + sizeof(blockheader_t)) && bucket < topBlock) bucket++;	
 
 	if ( buckets[bucket] == 0 ) {
+		
+		int i;
+		
+		for ( i=0; i<MAX_BLOCK; i++ ) {
+			int count = 0;
+			
+			blockheader_t fakeblock, *block = &fakeblock;
+			block->nextblock = buckets[i];
+			while ( block->nextblock ) count++;
+			iprintf("%d blocks of %d bytes\n", count, blocksize[i]);
+		}
 		I_Error ("buddyblock: Failure trying to allocate %u bytes\n",size);
 		return 0;
 	}
