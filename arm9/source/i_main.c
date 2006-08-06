@@ -59,6 +59,7 @@
 #ifdef USE_SDL
 #include "SDL.h"
 #endif
+#include "doomstat.h"
 
 /*#include <signal.h>
 #include <stdio.h>
@@ -501,6 +502,27 @@ int main(int argc, char **argv)
 		iprintf("FAT_InitFiles(): initialized.\n");
 	}
 	
+	iprintf("\x1b[4;0HChoose your game type\n\n");
+	iprintf("      Standard game\n      Network game");
+	
+	int line = 6;
+	
+	while(1) {
+		iprintf("\x1b[%d;4H]\x1b[15C[",line);
+		swiWaitForVBlank();
+		scanKeys();
+		int keys = keysDown();
+		iprintf("\x1b[%d;4H \x1b[15C ",line);
+		if ( (keys & KEY_UP) && line == 7 ) line = 6;
+		if ( (keys & KEY_DOWN) && line == 6 ) line = 7;
+		if ( keys & KEY_A ) break;
+	}
+	
+	if (line == 7 )
+	  netgame = true;
+	else
+	  netgame = false;
+
   /* Version info */
   lprintf(LO_INFO,"\n");
   PrintVer();

@@ -90,8 +90,8 @@ void D_InitNetGame (void)
 	i = M_CheckParm("-net");
 	if (i && i < myargc-1) i++;
 
-	netgame = server = true;
-  
+	server = netgame;
+
 	if (!netgame)
 	{
 		playeringame[consoleplayer = 0] = true;
@@ -113,7 +113,7 @@ void D_InitNetGame (void)
 		
 		iprintf("I_ConnectToServer()\n");
 		
-		if (I_ConnectToServer("192.168.0.1:5030") != 0) iprintf("FAILURE!\n");
+		if (I_ConnectToServer("mph.ath.cx:5030") != 0) iprintf("FAILURE!\n");
 		
 		iprintf("Connected?\n");
 

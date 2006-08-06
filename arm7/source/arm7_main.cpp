@@ -1,4 +1,3 @@
-
 /*---------------------------------------------------------------------------------
 	$Id: template.c,v 1.2 2005/09/07 20:06:06 wntrmute Exp $
 
@@ -14,11 +13,7 @@
 
 ---------------------------------------------------------------------------------*/
 #include <nds.h>
-
-#include <nds/bios.h>
-#include <nds/arm7/touch.h>
-#include <nds/arm7/clock.h>
-
+#include <stdlib.h>
 #include <dswifi7.h>
 
 
@@ -42,68 +37,64 @@ s32 getFreeSoundChannel() {
 	return -1;
 }
 
+int vcount;
+touchPosition first,tempPos;
+
 //---------------------------------------------------------------------------------
-void VblankHandler(void) {
+void VcountHandler() {
 //---------------------------------------------------------------------------------
-	static int heartbeat = 0;
-
-	uint16 but=0, x=0, y=0, xpx=0, ypx=0, z1=0, z2=0, batt=0, aux=0;
-	int t1=0, t2=0;
-	uint32 temp=0;
-	uint8 ct[sizeof(IPC->curtime)];
-	u32 i;
-
-	// Update the heartbeat
-	heartbeat++;
-
-	// Read the touch screen
+	static int lastbut = -1;
+	
+	uint16 but=0, x=0, y=0, xpx=0, ypx=0, z1=0, z2=0;
 
 	but = REG_KEYXY;
 
-	if (!(but & (1<<6))) {
-
-		touchPosition tempPos = touchReadXY();
+	if (!( (but ^ lastbut) & (1<<6))) {
+ 
+		tempPos = touchReadXY();
 
 		x = tempPos.x;
 		y = tempPos.y;
 		xpx = tempPos.px;
 		ypx = tempPos.py;
+		z1 = tempPos.z1;
+		z2 = tempPos.z2;
+		
+	} else {
+		lastbut = but;
+		but |= (1 <<6);
 	}
 
-	z1 = touchRead(TSC_MEASURE_Z1);
-	z2 = touchRead(TSC_MEASURE_Z2);
+	if ( vcount == 80 ) {
+		first = tempPos;
+	} else {
+		if (	abs( xpx - first.px) > 10 || abs( ypx - first.py) > 10 ||
+				(but & ( 1<<6)) ) {
 
-	
-	batt = touchRead(TSC_MEASURE_BATTERY);
-	aux  = touchRead(TSC_MEASURE_AUX);
+			but |= (1 <<6);
+			lastbut = but;
 
-	// Read the time
-	rtcGetTime((uint8 *)ct);
-	BCDToInteger((uint8 *)&(ct[1]), 7);
-
-	// Read the temperature
-	temp = touchReadTemperature(&t1, &t2);
-
-	// Update the IPC struct
-	IPC->heartbeat	= heartbeat;
+		} else { 	
+			IPC->mailBusy = 1;
+			IPC->touchX			= x;
+			IPC->touchY			= y;
+			IPC->touchXpx		= xpx;
+			IPC->touchYpx		= ypx;
+			IPC->touchZ1		= z1;
+			IPC->touchZ2		= z2;
+			IPC->mailBusy = 0;
+		}
+	}
 	IPC->buttons		= but;
-	IPC->touchX			= x;
-	IPC->touchY			= y;
-	IPC->touchXpx		= xpx;
-	IPC->touchYpx		= ypx;
-	IPC->touchZ1		= z1;
-	IPC->touchZ2		= z2;
-	IPC->battery		= batt;
-	IPC->aux			= aux;
+	vcount ^= (80 ^ 130);
+	SetYtrigger(vcount);
 
-	for(i=0; i<sizeof(ct); i++) {
-		IPC->curtime[i] = ct[i];
-	}
+}
 
-	IPC->temperature = temp;
-	IPC->tdiode1 = t1;
-	IPC->tdiode2 = t2;
-
+//---------------------------------------------------------------------------------
+void VblankHandler(void) {
+//---------------------------------------------------------------------------------
+	u32 i;
 
 	//sound code  :)
 	TransferSound *snd = IPC->soundData;
@@ -121,23 +112,37 @@ void VblankHandler(void) {
 	}
 
 	Wifi_Update(); // update wireless in vblank
-
 }
 
+//---------------------------------------------------------------------------------
 // callback to allow wifi library to notify arm9
+//---------------------------------------------------------------------------------
 void arm7_synctoarm9() { // send fifo message
-   REG_IPC_FIFO_TX = 0x87654321;
+//---------------------------------------------------------------------------------
+	REG_IPC_FIFO_TX = 0x87654321;
 }
+
+//---------------------------------------------------------------------------------
 // interrupt handler to allow incoming notifications from arm9
+//---------------------------------------------------------------------------------
 void arm7_fifo() { // check incoming fifo messages
-   u32 msg = REG_IPC_FIFO_RX;
-   if(msg==0x87654321) Wifi_Sync();
+//---------------------------------------------------------------------------------
+	u32 msg = REG_IPC_FIFO_RX;
+	if(msg==0x87654321) Wifi_Sync();
+
+	if(msg==0x12345678) {
+		REG_IME = 1;	// allow other interrupts
+		while(REG_IPC_FIFO_CR&IPC_FIFO_RECV_EMPTY); // wait for next value
+		u32 fifotemp = REG_IPC_FIFO_RX;
+		Wifi_Init(fifotemp);
+		Wifi_SetSyncHandler(arm7_synctoarm9); // allow wifi lib to notify arm9
+	}
 }
 
 //---------------------------------------------------------------------------------
 int main(int argc, char ** argv) {
 //---------------------------------------------------------------------------------
-  REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR; // enable & prepare fifo asap
+	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR; // enable & prepare fifo asap
 	// Reset the clock if needed
 	rtcReset();
 
@@ -149,32 +154,19 @@ int main(int argc, char ** argv) {
 	irqInit();
 	irqSet(IRQ_VBLANK, VblankHandler);
 	irqEnable(IRQ_VBLANK);
+
+	SetYtrigger(80);
+	vcount = 80;
+	irqSet(IRQ_VCOUNT, VcountHandler);
+	irqEnable((IRQ_MASK)(IRQ_VBLANK | IRQ_VCOUNT));
 	
 	irqSet(IRQ_WIFI, Wifi_Interrupt); // set up wifi interrupt
 	irqEnable(IRQ_WIFI);
-	
-	/*irqSet(IRQ_IPC_SYNC, Wifi_Update);
-	irqEnable(IRQ_IPC_SYNC);
-	REG_IPC_SYNC = IPC_SYNC_IRQ_ENABLE;*/
 
-{ // sync with arm9 and init wifi
-  	u32 fifo_temp;   
+	irqSet(IRQ_FIFO_NOT_EMPTY,arm7_fifo); // set up fifo irq
+	irqEnable(IRQ_FIFO_NOT_EMPTY);
+	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_RECV_IRQ;
 
-	  while(1) { // wait for magic number
-    	while(REG_IPC_FIFO_CR&IPC_FIFO_RECV_EMPTY) swiWaitForVBlank();
-      fifo_temp=REG_IPC_FIFO_RX;
-      if(fifo_temp==0x12345678) break;
-   	}
-   	while(REG_IPC_FIFO_CR&IPC_FIFO_RECV_EMPTY) swiWaitForVBlank();
-   	fifo_temp=REG_IPC_FIFO_RX; // give next value to wifi_init
-   	Wifi_Init(fifo_temp);
-   	
-   	irqSet(IRQ_FIFO_NOT_EMPTY,arm7_fifo); // set up fifo irq
-   	irqEnable(IRQ_FIFO_NOT_EMPTY);
-   	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_RECV_IRQ;
-
-   	Wifi_SetSyncHandler(arm7_synctoarm9); // allow wifi lib to notify arm9
-  } // arm7 wifi init complete
 
 	// Keep the ARM7 out of main RAM
 	while (1) swiWaitForVBlank();

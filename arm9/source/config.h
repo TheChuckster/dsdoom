@@ -120,7 +120,6 @@
 /* Define this to see real-time memory allocation statistics, and enable extra
    debugging features */
 /* #define INSTRUMENTED 1 */
-#define INSTRUMENTED 1
 
 /* Name of package */
 #define PACKAGE "DS Doom"
@@ -182,7 +181,7 @@
 
 /* Uncomment this to perform id checks on zone blocks, to detect corrupted and
    illegally freed blocks */
-#define ZONEIDCHECK 1
+/* #define ZONEIDCHECK 1 */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

@@ -2756,7 +2756,7 @@ static const byte* G_ReadDemoHeader(const byte *demo_p)
 
   if (playeringame[1])
     {
-      netgame = true;
+      //netgame = true;
       netdemo = true;
     }
 
