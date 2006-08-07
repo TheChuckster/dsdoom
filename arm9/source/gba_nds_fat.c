@@ -22,10 +22,7 @@
 #include "disc_io.h"
 #include <string.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-
+#include <stdarg.h> 
 #ifdef NDS
  #include <nds/ipc.h>	// Time on the NDS
 #endif
