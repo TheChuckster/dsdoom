@@ -206,6 +206,7 @@ int         mus_pause_opt; // 0 = kill music, 1 = pause, 2 = continue
 #endif
 
 extern const char* chat_macros[];
+extern const char* server_address[];
 
 extern int endoom_mode;
 
@@ -234,6 +235,8 @@ default_t defaults[] =
    def_hex, ss_none}, // 0, +1 for colours, +2 for non-ascii chars, +4 for skip-last-line
   {"level_precache",{(int*)&precache},{0},0,1,
    def_bool,ss_none}, // precache level data?
+  {"server", {0,&server_address[0]}, {0,"192.168.0.1:5030"},UL,UL,
+   def_str,ss_chat}, // address of server to join
 
   {"Files",{NULL},{0},UL,UL,def_none,ss_none},
   /* cph - MBF-like wad/deh/bex autoload code */

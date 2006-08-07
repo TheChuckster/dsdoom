@@ -80,6 +80,9 @@ int              wanted_player_number;
 #ifndef HAVE_NET
 doomcom_t*      doomcom;
 #endif
+const char* server_address[] = {
+	"192.168.0.1:5030"
+};
 
 #ifdef HAVE_NET
 void D_InitNetGame (void)
@@ -113,7 +116,7 @@ void D_InitNetGame (void)
 		
 		iprintf("I_ConnectToServer()\n");
 		
-		if (I_ConnectToServer("mph.ath.cx:5030") != 0) iprintf("FAILURE!\n");
+		if (I_ConnectToServer(server_address[0]) != 0) iprintf("FAILURE!\n");
 		
 		iprintf("Connected?\n");
 
