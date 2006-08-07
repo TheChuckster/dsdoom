@@ -253,8 +253,9 @@ void I_StartTic (void)
 {
 	scanKeys();	// Do DS input housekeeping
 	u16 keys = keysDown();
+	touchPosition touch = touchReadXY();
 	
-	if (keys & KEY_UP)
+	if (keys & KEY_UP || ((keysHeld() & KEY_TOUCH) && touch.py < 80))
 	{
 		event_t event;
 		event.type = ev_keydown;
@@ -270,7 +271,7 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 	
-	if (keys & KEY_DOWN)
+	if (keys & KEY_DOWN || ((keysHeld() & KEY_TOUCH) && touch.py > 120))
 	{
 		event_t event;
 		event.type = ev_keydown;
@@ -361,7 +362,7 @@ void I_StartTic (void)
 	
 	keys = keysUp();
 	
-	if (keys & KEY_UP)
+	if (keys & KEY_UP || (keys & KEY_TOUCH) || ((keysHeld() & KEY_TOUCH) && touch.py >= 80))
 	{
 		event_t event;
 		event.type = ev_keyup;
@@ -377,7 +378,7 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 	
-	if (keys & KEY_DOWN)
+	if (keys & KEY_DOWN || (keys & KEY_TOUCH) || ((keysHeld() & KEY_TOUCH) && touch.py <= 120))
 	{
 		event_t event;
 		event.type = ev_keyup;
@@ -454,6 +455,18 @@ void I_StartTic (void)
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = ',';
+		D_PostEvent(&event);
+	}
+	
+	if (keysHeld() & KEY_TOUCH) // this is only for x axis
+	{		
+		event_t event;
+		event.type = ev_mouse;
+		//event.data1 = I_SDLtoDoomMouseState(Event->motion.state);
+		event.data1 = 0;
+		event.data2 = ((touch.px - 128) / 3) << 5;
+		//event.data3 = (-(touch.py - 96) / 8) << 5;
+		event.data3 = (0) << 5;
 		D_PostEvent(&event);
 	}
 }
