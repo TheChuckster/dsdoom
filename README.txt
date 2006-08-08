@@ -43,3 +43,14 @@ manner used by your media device.
 
 
 
+Controls are simple.
+
+Use the directional pad for movement.
+Hold the X button to sprint.
+The Y button toggles through your weapon inventory.
+The A button fires.
+The B button is the "use" key for opening doors, etc.
+The R and L buttons allow you to strafe.
+The Start button brings up the main menu.
+The Select button chooses options in the menus.
+

@@ -142,6 +142,7 @@ Another bug spotter.
 Neil Stevens
 Mac OS X porting
 
+Chuck Moyes <TheChuckster@gmail.com>
 Dave Murphy <davem@devkitpro.org>
 Nintendo DS porting
 
