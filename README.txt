@@ -39,7 +39,8 @@ Installation
 
 Simply extract the zip to the root of your favourite media device, dsdoom
 has been tested to work on M3:SD and GBAMP so far. Start dsdoom.nds in the
-manner used by your media device.
+manner used by your media device. Select Standard Game from the initial
+menu to start a single player game.
 
 
 
@@ -54,3 +55,17 @@ The R and L buttons allow you to strafe.
 The Start button brings up the main menu.
 The Select button chooses options in the menus.
 
+Wifi connection
+
+To play online using wifi, you're going to want to have a PC with port 5030
+opened/forwarded. Run prboom_server.exe with the number of players specified
+using the -N command line parameter. There are other parameters for such
+things as maps and coop; check out the prboom_server documentation. The
+server waits until the given number of players connect and then the game
+begins.
+ 
+Now that you have the server running, you will want to set up the DSes. Make
+sure that WFC data is set in firmware on the DSes. Next, edit the prboom.cfg
+file on the card and change the server "name:port" line under misc. You are
+ready to start. Launch dsdoom.nds and choose the network game option in the
+initial menu.
