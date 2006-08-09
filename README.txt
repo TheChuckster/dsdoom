@@ -29,10 +29,11 @@ Software - either doom.wad, doom2.wad, tnt.wad or plutonia.wad from one
 of the commercial Doom games, or the shareware doom1.wad. This file
 is called the IWAD.
 
-If you don't own any of the Doom games, get the shareware doom1.wad
-from Doomworld's shareware download page. You won't be able to play
-most add-ons.
-http://www.doomworld.com/shareware
+If you don't own any of the Doom games, get the doom1.wad from shareware
+version of doom on The Dos Games Archive. You won't be able to play most
+add-ons.
+
+http://www.dosgamesarchive.com/download/game/7
 
 Installation
 ------------
