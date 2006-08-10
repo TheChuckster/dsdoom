@@ -179,7 +179,7 @@ int addsfx(int sfxid, int channel, int vol, int sep)
 		while ( samplelen-- ) {
 			ptr[samplelen] ^= 0x80;
 		}
-		DC_FlushRange(channelinfo[channel].data, len);
+		DC_FlushRange((void *)channelinfo[channel].data, len);
 	}
 	TransferSoundData audiotransfer = {
 		channelinfo[channel].data, // Sample address

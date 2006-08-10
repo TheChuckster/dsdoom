@@ -1422,8 +1422,7 @@ void D_DoomMainSetup(void)
     int i;
 
     for (i=0; i<MAXLOADFILES*2; i++) {
-      const char *fname = (i < MAXLOADFILES) ? wad_files[i]
-  : deh_files[i - MAXLOADFILES];
+      const char *fname = (i < MAXLOADFILES) ? wad_files[i]  : deh_files[i - MAXLOADFILES];
       char *fpath;
 
       if (!(fname && *fname)) continue;

@@ -31,8 +31,6 @@
 
 #include "config.h"
 
-#include <memory.h>
-
 #include "doomtype.h"
 #include "z_zone.h"
 #include "z_bmalloc.h"

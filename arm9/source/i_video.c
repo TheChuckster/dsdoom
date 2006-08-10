@@ -342,6 +342,8 @@ void I_StartTic (void)
 		event.type = ev_keydown;
 		event.data1 = weapons[weapon_index];
 		D_PostEvent(&event);
+		event.data1 = 'y';
+		D_PostEvent(&event);
 	}
 	
 	if (keys & KEY_R)
@@ -439,6 +441,8 @@ void I_StartTic (void)
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = weapons[weapon_index];
+		D_PostEvent(&event);
+		event.data1 = 'y';
 		D_PostEvent(&event);
 	}
 	
