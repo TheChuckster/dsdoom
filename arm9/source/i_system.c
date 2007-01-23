@@ -158,17 +158,21 @@ const char* I_SigString(char* buf, size_t sz, int signum)
  * cph 2001/11/18 - wrapper for read(2) which handles partial reads and aborts
  * on error.
  */
-void I_Read(FAT_FILE *fd, void* vbuf, size_t sz)
+void I_Read(FILE *fd, void* vbuf, size_t sz)
 {
-  unsigned char* buf = vbuf;
+
+	fread(vbuf,sz,1,fd);
+	
+/*  unsigned char* buf = vbuf;
 
   while (sz) {
-    int rc = FAT_fread(buf,sz,1,fd);
+    int rc = fread(buf,sz,1,fd);
     if (rc <= 0) {
       I_Error("I_Read: read failed: %s", rc ? strerror(errno) : "EOF");
     }
     sz -= rc; buf += rc;
   }
+*/
 }
 
 /*
@@ -177,7 +181,7 @@ void I_Read(FAT_FILE *fd, void* vbuf, size_t sz)
  * Return length of an open file.
  */
 
-int I_Filelength(int handle)
+int I_Filelength(FILE *handle)
 {
 #ifndef DREAMCAST
   struct stat   fileinfo;

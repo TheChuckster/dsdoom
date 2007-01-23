@@ -616,17 +616,17 @@ static const char *D_dehout(void)
 static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
 {
     int ud=0,rg=0,sw=0,cm=0,sc=0;
-    FAT_FILE* fp;
+    FILE* fp;
 
     // Identify IWAD correctly
-	fp = FAT_fopen(iwadname, "r");
+	fp = fopen(iwadname, "r");
 	
-	if (fp == (FAT_FILE *)-1) I_Error("CheckIWAD: Can't open IWAD %s", iwadname);
+	if (fp == (FILE *)-1) I_Error("CheckIWAD: Can't open IWAD %s", iwadname);
 
       wadinfo_t header;
 
       // read IWAD header
-      FAT_fread(&header, sizeof(header), 1, fp);
+      fread(&header, sizeof(header), 1, fp);
 	  
 	  if (!strncmp(header.identification, "IWAD", 4))
       {
@@ -639,9 +639,9 @@ static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
         length = header.numlumps;
         fileinfo = malloc(length*sizeof(filelump_t));
 		
-        FAT_fseek (fp, header.infotableofs, SEEK_SET);
-		FAT_fread (fileinfo, sizeof(filelump_t), length, fp);
-		FAT_fclose(fp);
+        fseek (fp, header.infotableofs, SEEK_SET);
+		fread (fileinfo, sizeof(filelump_t), length, fp);
+		fclose(fp);
 		
         //I_Error("CheckIWAD: failed to read directory %s",iwadname);
 

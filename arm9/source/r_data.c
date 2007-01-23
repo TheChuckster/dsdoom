@@ -760,17 +760,17 @@ void R_InitTranMap(int progress)
         unsigned char pct;
         unsigned char playpal[256];
       } cache;
-      FAT_FILE *cachefp = FAT_fopen(strcat(strcpy(fname, I_DoomExeDir()), "/tranmap.dat"),"r+");
+      FILE *cachefp = fopen(strcat(strcpy(fname, I_DoomExeDir()), "/tranmap.dat"),"r+");
 
       main_tranmap = my_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
 
       // Use cached translucency filter if it's available
 
-      if (!cachefp ? cachefp = FAT_fopen(fname,"wb") , 1 :
-          FAT_fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
+      if (!cachefp ? cachefp = fopen(fname,"wb") , 1 :
+          fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
-          FAT_fread(my_tranmap, 256, 256, cachefp) != 256 ) // killough 4/11/98
+          fread(my_tranmap, 256, 256, cachefp) != 256 ) // killough 4/11/98
         {
           long pal[3][256], tot[256], pal_w1[3][256];
           long w1 = ((unsigned long) tran_filter_pct<<TSC)/100;
@@ -833,15 +833,15 @@ void R_InitTranMap(int progress)
             {
               cache.pct = tran_filter_pct;
               memcpy(cache.playpal, playpal, 256);
-              FAT_fseek(cachefp, 0, SEEK_SET);
-              FAT_fwrite(&cache, 1, sizeof cache, cachefp);
-              FAT_fwrite(main_tranmap, 256, 256, cachefp);
+              fseek(cachefp, 0, SEEK_SET);
+              fwrite(&cache, 1, sizeof cache, cachefp);
+              fwrite(main_tranmap, 256, 256, cachefp);
         // CPhipps - leave close for a few lines...
             }
         }
 
       if (cachefp)              // killough 11/98: fix filehandle leak
-        FAT_fclose(cachefp);
+        fclose(cachefp);
 
       W_UnlockLumpName("PLAYPAL");
     }

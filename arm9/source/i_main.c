@@ -65,7 +65,7 @@
 #include <stdio.h>
 #include <stdlib.h>*/
 
-#include "gba_nds_fat.h"
+#include <fat.h>
 #include <dswifi9.h>
 #define		VCOUNT		(*((u16 volatile *) 0x04000006))
 
@@ -463,8 +463,8 @@ int main(int argc, char **argv)
   myargc = argc;
   myargv = argv;
 
-  	POWER_CR=POWER_ALL;
-	WAIT_CR=0xe800;
+  	powerON(POWER_ALL);
+	REG_EXEMEMCNT=0xe800;
 	
 	irqInit();	// Enable our quintessential vblank interrupt
 	irqSet(IRQ_VBLANK, NULL);
@@ -476,7 +476,7 @@ int main(int argc, char **argv)
 	TIMER1_CR=TIMER_CASCADE;
  
 	DISPLAY_CR=MODE_5_2D | DISPLAY_BG3_ACTIVE;
-	vramSetMainBanks(VRAM_A_MAIN_BG_0x6000000, VRAM_B_MAIN_BG_0x6020000, VRAM_C_SUB_BG, VRAM_D_LCD);
+	vramSetMainBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_MAIN_BG_0x06020000, VRAM_C_SUB_BG, VRAM_D_LCD);
  	videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE);
 	
 	SUB_BG0_CR = BG_MAP_BASE(31);
@@ -495,11 +495,11 @@ int main(int argc, char **argv)
 	
 	iprintf("Survived graphics init.\n");
 
-	if (!FAT_InitFiles())
+	if (!fatInitDefault())
 	{
 		iprintf("Unable to initialize media device!\n");
 	} else {
-		iprintf("FAT_InitFiles(): initialized.\n");
+		iprintf("libfat initialized.\n");
 	}
 	
 	iprintf("\x1b[4;0HChoose your game type\n\n");

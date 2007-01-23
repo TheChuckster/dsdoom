@@ -35,8 +35,7 @@
 #ifdef __GNUG__
 #pragma interface
 #endif
-
-#include "gba_nds_fat.h"
+#include <stdio.h>
 
 extern int ms_to_next_tick;
 int I_GetTime_RealTime(void);     /* killough */
@@ -60,9 +59,9 @@ char *I_DoomExeDir(void); // killough 2/16/98: path to executable's dir
 char* I_FindFile(const char* wfname, const char* ext);
 
 /* cph 2001/11/18 - wrapper for read(2) which deals with partial reads */
-void I_Read(FAT_FILE *fd, void* vbuf, size_t sz);
+void I_Read(FILE *fd, void* vbuf, size_t sz);
 
 /* cph 2001/11/18 - Move W_Filelength to i_system.c */
-int I_Filelength(int handle);
+int I_Filelength(FILE *handle);
 
 #endif

@@ -41,7 +41,7 @@
 // TYPES
 //
 
-#include "gba_nds_fat.h"
+#include <stdio.h>
 
 typedef struct
 {
@@ -79,7 +79,7 @@ typedef enum {
 typedef struct {
   const char* name;
   wad_source_t src;
-  FAT_FILE *handle;
+  FILE *handle;
 } wadfile_info_t;
 
 extern wadfile_info_t *wadfiles;

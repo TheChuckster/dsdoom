@@ -129,7 +129,7 @@ static void W_AddFile(wadfile_info_t *wadfile)
   filelump_t  singleinfo;
 
   // open the file and add to directory
-  wadfile->handle = FAT_fopen(wadfile->name, "r+");
+  wadfile->handle = fopen(wadfile->name, "rb");
 
 /*
 #ifdef HAVE_NET
@@ -138,7 +138,7 @@ static void W_AddFile(wadfile_info_t *wadfile)
 #endif
 */
     
-  if (wadfile->handle == -1) 
+  if (wadfile->handle == NULL) 
     {
       if (  strlen(wadfile->name)<=4 ||      // add error check -- killough
 	         (strcasecmp(wadfile->name+strlen(wadfile->name)-4 , ".lmp" ) &&
@@ -170,14 +170,20 @@ static void W_AddFile(wadfile_info_t *wadfile)
     {
       // WAD file
       I_Read(wadfile->handle, &header, sizeof(header));
+
       if (strncmp(header.identification,"IWAD",4) &&
-          strncmp(header.identification,"PWAD",4))
+          strncmp(header.identification,"PWAD",4)) {
+    
+    	char ident[5];
+    	strncpy(ident,header.identification,4);
+    	iprintf("header was %s\n",ident);       	
         I_Error("W_AddFile: Wad file %s doesn't have IWAD or PWAD id", wadfile->name);
+	}
       header.numlumps = LONG(header.numlumps);
       header.infotableofs = LONG(header.infotableofs);
       length = header.numlumps*sizeof(filelump_t);
       fileinfo2free = fileinfo = malloc(length);    // killough
-      FAT_fseek(wadfile->handle, header.infotableofs, SEEK_SET);
+      fseek(wadfile->handle, header.infotableofs, SEEK_SET);
       I_Read(wadfile->handle, fileinfo, length);
       numlumps += header.numlumps;
     }
@@ -466,7 +472,7 @@ void W_ReadLump(int lump, void *dest)
     {
       if (l->wadfile)
       {
-        FAT_fseek(l->wadfile->handle, l->position, SEEK_SET);
+        fseek(l->wadfile->handle, l->position, SEEK_SET);
         I_Read(l->wadfile->handle, dest, l->size);
       }
     }

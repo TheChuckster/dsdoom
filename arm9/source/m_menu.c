@@ -889,19 +889,19 @@ void M_ReadSaveStrings(void)
 
   for (i = 0 ; i < load_end ; i++) {
     char name[PATH_MAX+1];    // killough 3/22/98
-    FAT_FILE *fp;  // killough 11/98: change to use stdio
+    FILE *fp;  // killough 11/98: change to use stdio
 
     /* killough 3/22/98
      * cph - add not-demoplayback parameter */
     G_SaveGameName(name,sizeof(name),i,false);
-    fp = FAT_fopen(name,"rb");
+    fp = fopen(name,"rb");
     if (!fp) {   // Ty 03/27/98 - externalized:
       strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
       LoadMenue[i].status = 0;
       continue;
     }
-    FAT_fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp);
-    FAT_fclose(fp);
+    fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp);
+    fclose(fp);
     LoadMenue[i].status = 1;
   }
 }
