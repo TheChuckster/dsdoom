@@ -45,6 +45,13 @@
 
 boolean M_Responder (event_t *ev);
 
+// Jefklak 19/11/06 - allow stuff outside m_menu
+void M_SizeDisplay(int choice); 
+void M_ChangeScreens();
+void M_CheatMode();
+void M_StopMessage();
+// END
+
 // Called by main loop,
 // only used for menu (skull cursor) animation.
 

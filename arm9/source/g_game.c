@@ -792,18 +792,30 @@ void G_Ticker (void)
         {
         case ga_loadlevel:
     // force players to be initialized on level reload
+	// Jefklak 22/11/06 - stop the message too.
     for (i=0 ; i<MAXPLAYERS ; i++)
       players[i].playerstate = PST_REBORN;
           G_DoLoadLevel ();
+		  M_StopMessage();
+		  M_ClearMenus ();
+  	      // Jefklak 22/11/06 - do we need cheaters?
+	      if(gen_cheat_enable)
+		     M_CheatMode();
           break;
         case ga_newgame:
           G_DoNewGame ();
           break;
         case ga_loadgame:
           G_DoLoadGame ();
+		  M_StopMessage();
+		  M_ClearMenus ();
+  	      // Jefklak 22/11/06 - do we need cheaters?
+	      if(gen_cheat_enable)
+		     M_CheatMode();
           break;
         case ga_savegame:
           G_DoSaveGame (false);
+		  M_StopMessage();
           break;
         case ga_playdemo:
           G_DoPlayDemo ();
@@ -2165,6 +2177,12 @@ void G_InitNew(skill_t skill, int episode, int map)
   AM_clearMarks();
 
   G_DoLoadLevel ();
+  if(!gen_console_enable)
+	M_SizeDisplay(1); // Jefklak 19/11/06 - default display mode FULL (statusbar subscreen)
+
+  // Jefklak 21/11/06 - do we need cheaters?
+  if(gen_cheat_enable)
+	  M_CheatMode();
 }
 
 //

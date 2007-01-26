@@ -392,9 +392,10 @@ void ST_refreshBackground(void)
       V_DrawNamePatch(ST_X, y, screen, "STBAR", CR_DEFAULT, VPT_STRETCH);
 
       // killough 3/7/98: make face background change with displayplayer
+	  // Jefklak 20/11/06 - should be screen instead of BG
       if (netgame)
       {
-        V_DrawNumPatch(ST_FX, y, BG, faceback.lumpnum,
+        V_DrawNumPatch(ST_FX, y, screen, faceback.lumpnum,
            displayplayer ? CR_LIMIT+displayplayer : CR_DEFAULT,
            displayplayer ? (VPT_TRANS | VPT_STRETCH) : VPT_STRETCH);
       }

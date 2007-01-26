@@ -78,7 +78,8 @@ int map_secret_after;
 #define BC 247
 
 // drawing stuff
-#define FB    0
+// Jefklak 19/11/06 - draw map to FB 1 instead of 0 > lower screen
+#define FB    1
 
 // scale on entry
 #define INITSCALEMTOF (.2*FRACUNIT)
@@ -627,6 +628,9 @@ void AM_maxOutWindowScale(void)
 // Handle events (user inputs) in automap mode
 //
 // Passed an input event, returns true if its handled
+// Jefklak 19/11/06 - remove most handlers because map is shown in lower screen
+// zooming in & out should be done by B down + L (in) or B down + R (out)
+// function keys declared in i_video.c - I_StartTic()!
 //
 boolean AM_Responder
 ( event_t*  ev )
@@ -639,39 +643,11 @@ boolean AM_Responder
 
   rc = false;
 
-  if (!(automapmode & am_active))
-  {
-    if (ev->type == ev_keydown && ev->data1 == key_map)         // phares
-    {
-      AM_Start ();
-      rc = true;
-    }
-  }
-  else if (ev->type == ev_keydown)
+  if (ev->type == ev_keydown)
   {
     rc = true;
     ch = ev->data1;                                             // phares
-    if (ch == key_map_right)                                    //    |
-      if (!(automapmode & am_follow))                           //    V
-        m_paninc.x = FTOM(F_PANINC);
-      else
-        rc = false;
-    else if (ch == key_map_left)
-      if (!(automapmode & am_follow))
-          m_paninc.x = -FTOM(F_PANINC);
-      else
-          rc = false;
-    else if (ch == key_map_up)
-      if (!(automapmode & am_follow))
-          m_paninc.y = FTOM(F_PANINC);
-      else
-          rc = false;
-    else if (ch == key_map_down)
-      if (!(automapmode & am_follow))
-          m_paninc.y = -FTOM(F_PANINC);
-      else
-          rc = false;
-    else if (ch == key_map_zoomout)
+    if (ch == key_map_zoomout)
     {
       mtof_zoommul = M_ZOOMOUT;
       ftom_zoommul = M_ZOOMIN;
@@ -681,93 +657,10 @@ boolean AM_Responder
       mtof_zoommul = M_ZOOMIN;
       ftom_zoommul = M_ZOOMOUT;
     }
-    else if (ch == key_map)
-    {
-      bigstate = 0;
-      AM_Stop ();
-    }
-    else if (ch == key_map_gobig)
-    {
-      bigstate = !bigstate;
-      if (bigstate)
-      {
-        AM_saveScaleAndLoc();
-        AM_minOutWindowScale();
-      }
-      else
-        AM_restoreScaleAndLoc();
-    }
-    else if (ch == key_map_follow)
-    {
-      automapmode ^= am_follow;     // CPhipps - put all automap mode stuff into one enum
-      f_oldloc.x = INT_MAX;
-      // Ty 03/27/98 - externalized
-      plr->message = (automapmode & am_follow) ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;
-    }
-    else if (ch == key_map_grid)
-    {
-      automapmode ^= am_grid;      // CPhipps
-      // Ty 03/27/98 - *not* externalized
-      plr->message = (automapmode & am_grid) ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF;
-    }
-    else if (ch == key_map_mark)
-    {
-      // Ty 03/27/98 - *not* externalized
-#ifdef HAVE_SNPRINTF
-      snprintf(buffer, sizeof(buffer), "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);
-#else
-      sprintf(buffer, "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);
-#endif
-      plr->message = buffer;
-      AM_addMark();
-    }
-    else if (ch == key_map_clear)
-    {
-      AM_clearMarks();  // Ty 03/27/98 - *not* externalized
-      plr->message = s_AMSTR_MARKSCLEARED;                      //    ^
-    }                                                           //    |
-    else if (ch == key_map_rotate) {
-      automapmode ^= am_rotate;
-      plr->message = (automapmode & am_rotate) ? s_AMSTR_ROTATEON : s_AMSTR_ROTATEOFF;
-    }
-    else if (ch == key_map_overlay) {
-      automapmode ^= am_overlay;
-      plr->message = (automapmode & am_overlay) ? s_AMSTR_OVERLAYON : s_AMSTR_OVERLAYOFF;
-    }
     else                                                        // phares
     {
       cheatstate=0;
       rc = false;
-    }
-  }
-  else if (ev->type == ev_keyup)
-  {
-    rc = false;
-    ch = ev->data1;
-    if (ch == key_map_right)
-    {
-      if (!(automapmode & am_follow))
-          m_paninc.x = 0;
-    }
-    else if (ch == key_map_left)
-    {
-      if (!(automapmode & am_follow))
-          m_paninc.x = 0;
-    }
-    else if (ch == key_map_up)
-    {
-      if (!(automapmode & am_follow))
-          m_paninc.y = 0;
-    }
-    else if (ch == key_map_down)
-    {
-      if (!(automapmode & am_follow))
-          m_paninc.y = 0;
-    }
-    else if ((ch == key_map_zoomout) || (ch == key_map_zoomin))
-    {
-      mtof_zoommul = FRACUNIT;
-      ftom_zoommul = FRACUNIT;
     }
   }
   return rc;
@@ -1691,13 +1584,11 @@ inline static void AM_drawCrosshair(int color)
 // Draws the entire automap
 //
 // Passed nothing, returns nothing
+// Jefklak 19/11/06 - remove am_active check, should be drawn at all times.
 //
 void AM_Drawer (void)
 {
-  // CPhipps - all automap modes put into one enum
-  if (!(automapmode & am_active)) return;
-
-  if (!(automapmode & am_overlay)) // cph - If not overlay mode, clear background for the automap
+  //if (!(automapmode & am_overlay)) // cph - If not overlay mode, clear background for the automap
     V_FillRect(FB, f_x, f_y, f_w, f_h, (byte)mapcolor_back); //jff 1/5/98 background default color
   if (automapmode & am_grid)
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color

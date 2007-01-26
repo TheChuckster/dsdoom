@@ -18,13 +18,13 @@ Project Tagfile=
 Create Tagfile=0
 Include Sub Directories=0
 [Open Files]
-Open File0=E:\projects\nds\dsdoom\arm7\Makefile
+Open File0=
 Open File Pos0=0
 Open File Line0=0
 Active File Index=1
 Open File Window Pos0=0,1,-1,-1,-4,-23,88,88,941,395
 Open File1=E:\projects\nds\dsdoom\arm7\build\.map
-Active File Display Mode=3
+Active File Display Mode=-1
 Open File Pos1=0
 Open File Line1=3013
 Open File Window Pos1=2,3,-1,-1,-4,-23,110,110,967,421
@@ -86,7 +86,7 @@ Open File Line15=5847
 Open File Window Pos15=2,3,-1,-1,-4,-23,132,132,895,572
 Open File16=
 [File View]
-Current Select=Project Files\arm7\arm7\Makefile
+Current Select=Project Files\
 Scroll Position=0
 [Files - arm7]
 0=arm7\Makefile

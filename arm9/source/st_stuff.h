@@ -99,4 +99,5 @@ extern int sts_pct_always_gray;// status percents do not change colors
 extern int sts_traditional_keys;  // display keys the traditional way
 
 extern int st_palette;    // cph 2006/04/06 - make palette visible
+extern int FG; // Jefklak 20/11/06 - framebuffer console bla
 #endif

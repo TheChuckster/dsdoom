@@ -61,6 +61,9 @@ extern  boolean devparm;  // DEBUG: launched with -devparm
 // Game Mode - identify IWAD as shareware, retail etc.
 //
 
+// Jefklak 21/11/06 - powersave mode
+extern boolean DS_LCDON;
+
 extern GameMode_t gamemode;
 extern GameMission_t  gamemission;
 

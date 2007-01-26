@@ -63,6 +63,7 @@
 #include "i_joy.h"
 #include "lprintf.h"
 #include "d_main.h"
+#include "i_main.h"	// Jefklak - gen_ vars declared in i_main.c
 
 //
 // M_DrawText
@@ -194,6 +195,13 @@ extern int mouseSensitivity_horiz,mouseSensitivity_vert;  // killough
 
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
+extern int use_fullscreen;
+
+// Jefklak 21/11/06
+extern int gen_screen_swap;
+extern int gen_console_enable;
+extern int gen_cheat_enable;
+// END
 
 extern int screenblocks;
 extern int showMessages;
@@ -357,6 +365,15 @@ default_t defaults[] =
   {"use_doublebuffer",{&use_doublebuffer},{1},0,1,             // proff 2001-7-4
    def_bool,ss_none}, // enable doublebuffer to avoid display tearing (fullscreen)
 #endif
+   // Jefklak 21/11/06 - add console + screenswap stuff
+   // CONFIG NAME // VAR NAME // DEFAULT VAL // MIN VAL // MAX VAL // VAL TYPE // ?
+  {"gen_screen_swap", {&gen_screen_swap}, {0}, 0, 1,
+  def_bool,ss_none},
+  {"gen_console_enable", {&gen_console_enable}, {0}, 0, 1,
+  def_bool,ss_none},
+  {"gen_cheat_enable", {&gen_cheat_enable}, {0}, 0, 1,
+  def_bool,ss_none},
+  // END
   {"translucency",{&default_translucency},{1},0,1,   // phares
    def_bool,ss_none}, // enables translucency
   {"tran_filter_pct",{&tran_filter_pct},{66},0,100,         // killough 2/21/98
@@ -1024,6 +1041,8 @@ void M_LoadDefaults (void)
   /* proff 2001/7/1 - added prboom.wad as last entry so it's always loaded and
      doesn't overlap with the cfg settings */
   wad_files[MAXLOADFILES-1]="prboom.wad";
+	if(gen_screen_swap)	// Jefklak 21/11/06 - config load applying
+		M_ChangeScreens();
 }
 
 

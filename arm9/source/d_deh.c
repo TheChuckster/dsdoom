@@ -136,6 +136,15 @@ const char *s_NIGHTMARE   = NIGHTMARE; // PRESSYN;
 const char *s_SWSTRING    = SWSTRING;  // PRESSKEY;
 const char *s_MSGOFF      = MSGOFF;
 const char *s_MSGON       = MSGON;
+// Jefklak 20/11/06
+const char *s_SCREENSWAP  = MSGSCREENSWAP;
+const char *s_CONSOLESWAPON = MSGCONSOLESWAPON;
+const char *s_CONSOLESWAPOFF = MSGCONSOLESWAPOFF;
+const char *s_LOADING	  = MSGLOADING;
+const char *s_SAVING	  = MSGSAVING;
+const char *s_CHEATS	  = MSGCHEATS;
+const char *s_DSBRIGHTNESS = MSGDSBRIGHTNESS;
+// END
 const char *s_NETEND      = NETEND;    // PRESSKEY;
 const char *s_ENDGAME     = ENDGAME;   // PRESSYN; // killough 4/4/98: end
 const char *s_DOSY        = DOSY;

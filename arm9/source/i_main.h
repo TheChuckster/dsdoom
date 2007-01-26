@@ -41,6 +41,16 @@ void StartWifi();
 extern int broken_pipe;
 extern int (*I_GetTime)(void);
 
+// Jefklak 19/11/06 - allow video routines to check console var.
+void switchConsole();
+void DStoggleBrightness();
+void DSgetUserName();
+extern int gen_console_enable;
+extern int gen_screen_swap;
+extern int FG;
+extern char *DS_USERNAME;
+// END
+
 #ifdef SECURE_UID
 extern uid_t stored_euid; /* UID that the SVGALib I_InitGraphics switches to before vga_init() */
 #endif

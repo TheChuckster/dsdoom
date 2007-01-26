@@ -33,13 +33,17 @@
 
 // We are referring to patches.
 #include "r_defs.h"
+#include "st_lib.h"
 #include "v_video.h"  //jff 2/16/52 include color range defs
 
 
 /* background and foreground screen numbers
  * different from other modules. */
+// Jefklak 19/11/06 - Draw Text info stuff (pickups, map coords ed) on lower screen
+// therefore define FG as buffer #1 instead of 0
 #define BG      1
-#define FG      0
+extern int FG;
+//#define FG      1 - has been replaced by static
 
 /* font stuff
  * #define HU_CHARERASE    KEYD_BACKSPACE / not used               / phares

@@ -38,9 +38,10 @@
 
 //
 // Background and foreground screen numbers
+// Jekflak 19/11/06 - draw everything on lower screen.
 //
 #define BG 4
-#define FG 0
+//#define FG 1
 
 //
 // Typedefs of widgets

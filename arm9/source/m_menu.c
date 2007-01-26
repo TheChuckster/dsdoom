@@ -50,13 +50,14 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "m_menu.h"
-#include "d_deh.h"
 #include "m_misc.h"
 #include "lprintf.h"
 #include "am_map.h"
 #include "i_main.h"
 #include "i_system.h"
 #include "i_video.h"
+#include "d_deh.h"
+#include "m_cheat.h" // Jefklak 21/11/06
 
 extern patchnum_t hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
@@ -253,6 +254,11 @@ void M_ReadThis2(int choice);
 void M_QuitDOOM(int choice);
 
 void M_ChangeMessages(int choice);
+// Jefklak 20/11/06
+void M_ChangeConsole();
+void M_ChanceScreens();
+void M_CheatMode();
+// END
 void M_ChangeSensitivity(int choice);
 void M_SfxVol(int choice);
 void M_MusicVol(int choice);
@@ -662,6 +668,10 @@ static void M_RestartLevelResponse(int ch)
   currentMenu->lastOn = itemOn;
   M_ClearMenus ();
   G_RestartLevel ();
+
+  // Jefklak 21/11/06 - do we need cheaters?
+  if(gen_cheat_enable)
+	  M_CheatMode();
 }
 
 void M_NewGame(int choice)
@@ -807,9 +817,11 @@ void M_LoadSelect(int choice)
 {
   // CPhipps - Modified so savegame filename is worked out only internal
   //  to g_game.c, this only passes the slot.
+  // Jefklak 21/11/06 - add loading message.
+  M_StartMessage(s_LOADING, NULL, false);
+  lprintf(LO_INFO, "%s\n", s_LOADING);
 
   G_LoadGame(choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
-
   M_ClearMenus ();
 }
 
@@ -906,6 +918,57 @@ void M_ReadSaveStrings(void)
   }
 }
 
+// Jefklak 21/11/06 - rip episode and map + attach to username
+char *M_GetSaveSlotText(void)
+{
+	char *slotVal;
+	char *mapVal;
+
+	// initialize the automap's level title widget
+	if (gamestate == GS_LEVEL)
+		switch (gamemode)
+	{
+		case shareware:
+		case registered:
+		case retail:
+			mapVal = HU_TITLE;
+			break;
+
+		case commercial:
+		default:
+			mapVal = (gamemission==pack_tnt)  ? HU_TITLET :
+				(gamemission==pack_plut) ? HU_TITLEP : HU_TITLE2;
+			break;
+	} else mapVal = "E0M0";
+
+	int size = sizeof(DS_USERNAME) + sizeof(mapVal) + 1;
+	if(size > SAVESTRINGSIZE - 1)
+	{
+		// too wide. Manually cut down until max size.. Argh!
+		slotVal = malloc(SAVESTRINGSIZE - 1);
+		strcpy(slotVal, DS_USERNAME);
+		strcat(slotVal, "_");
+
+		char *s = mapVal;
+		int i = sizeof(DS_USERNAME) + 1;
+		while(*s && i < (SAVESTRINGSIZE - 1))
+		{
+			i++;
+			*(slotVal + i) = (*s++);
+		}
+	}
+	else
+	{
+		// easy, past every thing and send it to return.
+		slotVal = malloc(size);
+		strcpy(slotVal, DS_USERNAME);
+		strcat(slotVal, "_");
+		strcat(slotVal, mapVal);
+	}
+
+	return slotVal;
+}
+
 //
 //  M_SaveGame & Cie.
 //
@@ -924,8 +987,22 @@ void M_DrawSave(void)
 
   if (saveStringEnter)
     {
+		if(!savegamestrings[saveSlot][0])
+		{
+			//  Jefklak 21/11/06 - autoname save slots. Cool!
+			// incompatible types, manually copy chars
+			char *s = M_GetSaveSlotText();
+			int i = 0;
+			while(*s)
+			{
+				savegamestrings[saveSlot][i] = (*s++);
+				i++;
+			}
+
+			lprintf(LO_INFO, "save text: \n\t|%s|\n", savegamestrings[saveSlot]);
     i = M_StringWidth(savegamestrings[saveSlot]);
-    M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
+			M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot, savegamestrings[saveSlot]);
+		}
     }
 }
 
@@ -934,6 +1011,10 @@ void M_DrawSave(void)
 //
 void M_DoSave(int slot)
 {
+  // Jefklak 21/11/06 - add loading message.
+  M_StartMessage(s_SAVING, NULL, false);
+  lprintf(LO_INFO, "%s\n", s_SAVING);
+
   G_SaveGame (slot,savegamestrings[slot]);
   M_ClearMenus ();
 
@@ -1419,6 +1500,34 @@ void M_ChangeMessages(int choice)
 
   message_dontfuckwithme = true;
 }
+
+// Jefklak 20/11/06 - allow user to switch screens in options menu
+void M_ChangeScreens()
+{
+	lcdSwap();
+	V_SetPalette(0); // don't forget palette update
+	players[consoleplayer].message = s_SCREENSWAP;
+	if(gen_console_enable)
+		lprintf(LO_INFO, "%s\n", s_SCREENSWAP);
+}
+
+// enable/disable console mode
+void M_ChangeConsole()
+{
+	switchConsole();	// output is also handled by this function
+	V_SetPalette(0);	// don't forget palette update
+}
+
+void M_CheatMode()
+{
+	gen_cheat();
+
+	players[consoleplayer].message = s_CHEATS;
+	if(gen_console_enable)
+		lprintf(LO_INFO, "%s\n", s_CHEATS);
+}
+
+// END
 
 /////////////////////////////
 //
@@ -2878,6 +2987,9 @@ void M_DrawEnemy(void)
 extern int usejoystick, usemouse, default_mus_card, default_snd_card;
 extern int detect_voices, realtic_clock_rate, tran_filter_pct;
 
+// Jefklak 21/11/06 - add additional flags, used in config
+extern int gen_screen_swap, gen_console_enable, gen_cheat_enable;
+
 setup_menu_t gen_settings1[], gen_settings2[];
 
 setup_menu_t* gen_settings[] =
@@ -2912,6 +3024,7 @@ enum {
 #define G_Y4 (G_Y3+52)
 #define GF_X 76
 
+// Jefklak 21/11/06 - add options, remove unneccesary ones
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 12},
@@ -2919,46 +3032,22 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Enable Translucency", S_YESNO, m_null, G_X,
    G_Y + general_trans*8, {"translucency"}, 0, 0, M_Trans},
 
-  {"Translucency filter percentage", S_NUM, m_null, G_X,
-   G_Y + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
+  {"Use Lower screen as Main", S_YESNO, m_null, G_X,
+   G_Y + general_transpct*8, {"gen_screen_swap"}, 0, 0, M_ChangeScreens},
 
-  {"Fullscreen Video mode", S_YESNO, m_null, G_X,
-   G_Y + general_fullscreen*8, {"use_fullscreen"}, 0, 0, M_FullScreen},
-#ifdef GL_DOOM
-  {"Item out of Floor offset", S_NUM, m_null, G_X,
-   G_Y + general_flooroffset*8, {"gl_sprite_offset"}},
-#endif
-
-#if 0
-  {"PCX instead of BMP for screenshots", S_YESNO, m_null, G_X,
-   G_Y + general_pcx*8, {"screenshot_pcx"}},
-#endif
-
-#if 0 // MBF
-  {"Flash Icon During Disk IO", S_YESNO, m_null, G_X,
-   G_Y + general_diskicon*8, {"disk_icon"}},
-#endif
+  {"Enable Console Mode", S_YESNO, m_null, G_X,
+   G_Y + general_fullscreen*8, {"gen_console_enable"}, 0, 0, M_ChangeConsole},
 
   {"Flashing HOM indicator", S_YESNO, m_null, G_X,
    G_Y + general_hom*8, {"flashing_hom"}},
 
-  {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
-#if 0 // MBF
-  {"Sound Card", S_NUM|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_sndcard*8, {"sound_card"}},
-
-  {"Music Card", S_NUM|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_muscard*8, {"music_card"}},
-
-  {"Autodetect Number of Voices", S_YESNO|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_detvoices*8, {"detect_voices"}},
-#endif
+  {"Other General Option", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_sndchan*8, {"snd_channels"}},
 
-  {"Enable v1.1 Pitch Effects", S_YESNO, m_null, G_X,
-   G_Y2 + general_pitch*8, {"pitched_sounds"}},
+  {"Cheat Mode (god, ammo, keys)", S_YESNO, m_null, G_X,
+   G_Y2 + general_pitch*8, {"gen_cheat_enable"}, 0, 0, M_CheatMode},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3960,6 +4049,18 @@ enum {
 #define CR_Y 32
 #define CR_SH 9
 
+/*
+  {"Additional Credit To",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
+  {"id Software for DOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+1)+CR_SH*cr_adcr},
+  {"TeamTNT for BOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+2)+CR_SH*cr_adcr},
+  {"Lee Killough for MBF",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+3)+CR_SH*cr_adcr},
+  {"The DOSDoom-Team for DOSDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+4)+CR_SH*cr_adcr},
+  {"Randy Heit for ZDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+5)+CR_SH*cr_adcr},
+  {"Michael 'Kodak' Ryssen for DOOMGL",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+6)+CR_SH*cr_adcr},
+  {"all others who helped (see AUTHORS file)",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+7)+CR_SH*cr_adcr},
+*/
+
+// Jefklak 20/11/06 - Change the credits for God's sake!
 setup_menu_t cred_settings[]={
 
   {"Programmers",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*prog + CR_SH*cr_prog},
@@ -3968,13 +4069,13 @@ setup_menu_t cred_settings[]={
   {"Florian 'Proff' Schulze",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(prog+3) + CR_SH*cr_prog},
   {"Nicolas Kalkhof",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(prog+4) + CR_SH*cr_prog},
 
-  {"Additional Credit To",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
-  {"id Software for DOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+1)+CR_SH*cr_adcr},
-  {"TeamTNT for BOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+2)+CR_SH*cr_adcr},
-  {"Lee Killough for MBF",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+3)+CR_SH*cr_adcr},
-  {"The DOSDoom-Team for DOSDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+4)+CR_SH*cr_adcr},
-  {"Randy Heit for ZDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+5)+CR_SH*cr_adcr},
-  {"Michael 'Kodak' Ryssen for DOOMGL",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+6)+CR_SH*cr_adcr},
+  {"DSDOOM Programmers",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
+  {"Chuck 'TheCuckster' Moyes",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+1)+CR_SH*cr_adcr},
+  {"Dave 'Wintermute' Murphy",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+2)+CR_SH*cr_adcr},
+  {"Wouter 'Jefklak' Groeneveld",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+3)+CR_SH*cr_adcr},
+  {"Additional credits to:",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*(adcr+4)+CR_SH*cr_adcr},
+  {"id Software for DOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+5)+CR_SH*cr_adcr},
+  {"All porters for BOOM, DOSDOOM, ZDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+6)+CR_SH*cr_adcr},
   {"all others who helped (see AUTHORS file)",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+7)+CR_SH*cr_adcr},
 
   {0,S_SKIP|S_END,m_null}
@@ -3994,133 +4095,17 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
 //
 // Examines incoming keystrokes and button pushes and determines some
 // action based on the state of the system.
+// Jefklak 21/11/06 - attempt to clean up this big mess
+// Since we're on a DS, kill joystick/mouse handling.
 //
 
+
 boolean M_Responder (event_t* ev) {
-  int    ch;
+	int ch = -1; // will be changed to a legit char if we're going to use it here
   int    i;
-  static int joywait   = 0;
-  static int mousewait = 0;
-  static int mousey    = 0;
-  static int lasty     = 0;
-  static int mousex    = 0;
-  static int lastx     = 0;
 
-  ch = -1; // will be changed to a legit char if we're going to use it here
-
-  // Process joystick input
-
-  if (ev->type == ev_joystick && joywait < I_GetTime())  {
-    if (ev->data3 == -1)
-      {
-  ch = key_menu_up;                                // phares 3/7/98
-  joywait = I_GetTime() + 5;
-      }
-    else if (ev->data3 == 1)
-      {
-  ch = key_menu_down;                              // phares 3/7/98
-  joywait = I_GetTime() + 5;
-      }
-
-    if (ev->data2 == -1)
-      {
-  ch = key_menu_left;                              // phares 3/7/98
-  joywait = I_GetTime() + 2;
-      }
-    else if (ev->data2 == 1)
-      {
-  ch = key_menu_right;                             // phares 3/7/98
-  joywait = I_GetTime() + 2;
-      }
-
-    if (ev->data1&1)
-      {
-  ch = key_menu_enter;                             // phares 3/7/98
-  joywait = I_GetTime() + 5;
-      }
-
-    if (ev->data1&2)
-      {
-  ch = key_menu_backspace;                         // phares 3/7/98
-  joywait = I_GetTime() + 5;
-      }
-
-    // phares 4/4/98:
-    // Handle joystick buttons 3 and 4, and allow them to pass down
-    // to where key binding can eat them.
-
-    if (setup_active && set_keybnd_active) {
-      if (ev->data1&4) {
-  ch = 0; // meaningless, just to get you past the check for -1
-  joywait = I_GetTime() + 5;
-      }
-      if (ev->data1&8) {
-  ch = 0; // meaningless, just to get you past the check for -1
-  joywait = I_GetTime() + 5;
-      }
-    }
-
-  } else {
-   // Process mouse input
-
-    if (ev->type == ev_mouse && mousewait < I_GetTime()) {
-      mousey += ev->data3;
-      if (mousey < lasty-30)
-  {
-    ch = key_menu_down;                            // phares 3/7/98
-    mousewait = I_GetTime() + 5;
-    mousey = lasty -= 30;
-  }
-      else if (mousey > lasty+30)
-  {
-    ch = key_menu_up;                              // phares 3/7/98
-    mousewait = I_GetTime() + 5;
-    mousey = lasty += 30;
-  }
-
-      mousex += ev->data2;
-      if (mousex < lastx-30)
-  {
-    ch = key_menu_left;                            // phares 3/7/98
-    mousewait = I_GetTime() + 5;
-    mousex = lastx -= 30;
-  }
-      else if (mousex > lastx+30)
-  {
-    ch = key_menu_right;                           // phares 3/7/98
-    mousewait = I_GetTime() + 5;
-    mousex = lastx += 30;
-  }
-
-      if (ev->data1&1)
-  {
-    ch = key_menu_enter;                           // phares 3/7/98
-    mousewait = I_GetTime() + 15;
-  }
-
-      if (ev->data1&2)
-  {
-    ch = key_menu_backspace;                       // phares 3/7/98
-    mousewait = I_GetTime() + 15;
-  }
-
-      // phares 4/4/98:
-      // Handle mouse button 3, and allow it to pass down
-      // to where key binding can eat it.
-
-      if (setup_active && set_keybnd_active)
-  if (ev->data1&4)
-    {
-    ch = 0; // meaningless, just to get you past the check for -1
-    mousewait = I_GetTime() + 15;
-    }
-    }
-    else
-
-      // Process keyboard input
-
-      if (ev->type == ev_keydown)
-        {
+	// Process general keyboard input
+	if (ev->type == ev_keydown) {
         ch = ev->data1;               // phares 4/11/98:
         if (ch == KEYD_RSHIFT)        // For chat string processing, need
           shiftdown = true;           // to know when shift key is up or
@@ -4128,46 +4113,25 @@ boolean M_Responder (event_t* ev) {
       else if (ev->type == ev_keyup)  // etc. keys. Keydowns are allowed
         if (ev->data1 == KEYD_RSHIFT) // past this point, but keyups aren't
           shiftdown = false;          // so we need to note the difference
-    }                                 // here using the 'shiftdown' boolean.
 
   if (ch == -1)
     return false; // we can't use the event here
 
   // Save Game string input
-
   if (saveStringEnter) {
-    if (ch == key_menu_backspace)                            // phares 3/7/98
-      {
-      if (saveCharIndex > 0)
-        {
-        saveCharIndex--;
-        savegamestrings[saveSlot][saveCharIndex] = 0;
-        }
-      }
-
-      else if (ch == key_menu_escape)                    // phares 3/7/98
+		lprintf(LO_INFO, "M_Responder: saveStringEnter\n");
+		if (ch == key_menu_escape)                    // phares 3/7/98
   {
     saveStringEnter = 0;
     strcpy(&savegamestrings[saveSlot][0],saveOldString);
   }
 
-      else if (ch == key_menu_enter)                     // phares 3/7/98
+		// Jefklak 21/11/06 - 'A' is saving too
+		else if (ch == key_menu_enter || ch == KEYD_RCTRL)
   {
     saveStringEnter = 0;
-    if (savegamestrings[saveSlot][0])
+			if(savegamestrings[saveSlot][0])
       M_DoSave(saveSlot);
-  }
-
-      else
-  {
-  ch = toupper(ch);
-  if (ch >= 32 && ch <= 127 &&
-      saveCharIndex < SAVESTRINGSIZE-1 &&
-      M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE-2)*8)
-    {
-    savegamestrings[saveSlot][saveCharIndex++] = ch;
-    savegamestrings[saveSlot][saveCharIndex] = 0;
-    }
   }
     return true;
   }
@@ -4175,6 +4139,11 @@ boolean M_Responder (event_t* ev) {
   // Take care of any messages that need input
 
   if (messageToPrint) {
+		lprintf(LO_INFO, "M_Responder: messageToPrint\n");
+		// Jefklak 19/11/06 - parse correct key(s) to quit.
+		if(ev->type == ev_keydown && (ev->data1 == KEYD_RCTRL || ev->data1 == KEYD_ENTER))
+			ch = 'y';
+
     if (messageNeedsInput == true &&
   !(ch == ' ' || ch == 'n' || ch == 'y' || ch == key_escape)) // phares
       return false;
@@ -4199,47 +4168,12 @@ boolean M_Responder (event_t* ev) {
     }
 
   // If there is no active menu displayed...
-
-  if (!menuactive) {                                           // phares
-    if (ch == key_autorun)      // Autorun                          //  V
+	// Jefklak 21/11/06 - removed most quick key checks, no keyboard on DS
+	// TODO scrnshot, gamma, quicksave/load? in menu or other shortcuts > leave code alone
+	if (!menuactive) {
+		if (ch == key_autorun)			// Autorun
       {
       autorun = !autorun;
-      return true;
-      }
-
-    if (ch == key_help)      // Help key
-      {
-      M_StartControlPanel ();
-
-      currentMenu = &HelpDef;         // killough 10/98: new help screen
-
-      itemOn = 0;
-      S_StartSound(NULL,sfx_swtchn);
-      return true;
-      }
-
-    if (ch == key_savegame)     // Save Game
-      {
-      M_StartControlPanel();
-      S_StartSound(NULL,sfx_swtchn);
-      M_SaveGame(0);
-      return true;
-      }
-
-    if (ch == key_loadgame)     // Load Game
-      {
-      M_StartControlPanel();
-      S_StartSound(NULL,sfx_swtchn);
-      M_LoadGame(0);
-      return true;
-      }
-
-    if (ch == key_soundvolume)      // Sound Volume
-      {
-      M_StartControlPanel ();
-      currentMenu = &SoundDef;
-      itemOn = sfx_vol;
-      S_StartSound(NULL,sfx_swtchn);
       return true;
       }
 
@@ -4250,31 +4184,10 @@ boolean M_Responder (event_t* ev) {
       return true;
       }
 
-    if (ch == key_endgame)      // End game
-      {
-      S_StartSound(NULL,sfx_swtchn);
-      M_EndGame(0);
-      return true;
-      }
-
-    if (ch == key_messages)      // Toggle messages
-      {
-      M_ChangeMessages(0);
-      S_StartSound(NULL,sfx_swtchn);
-      return true;
-      }
-
     if (ch == key_quickload)      // Quickload
       {
       S_StartSound(NULL,sfx_swtchn);
       M_QuickLoad();
-      return true;
-      }
-
-    if (ch == key_quit)       // Quit DOOM
-      {
-      S_StartSound(NULL,sfx_swtchn);
-      M_QuitDOOM(0);
       return true;
       }
 
@@ -4292,59 +4205,12 @@ boolean M_Responder (event_t* ev) {
       V_SetPalette(0);
       return true;
       }
-
-
-    if (ch == key_zoomout)     // zoom out
-      {
-      if ((automapmode & am_active) || chat_on)
-        return false;
-      M_SizeDisplay(0);
-      S_StartSound(NULL,sfx_stnmov);
-      return true;
       }
 
-    if (ch == key_zoomin)               // zoom in
-      {                                 // jff 2/23/98
-      if ((automapmode & am_active) || chat_on)     // allow
-        return false;                   // key_hud==key_zoomin
-      M_SizeDisplay(1);                                             //  ^
-      S_StartSound(NULL,sfx_stnmov);                                //  |
-      return true;                                                  // phares
-      }
-
-    if (ch == key_hud)   // heads-up mode
-      {
-      if ((automapmode & am_active) || chat_on)    // jff 2/22/98
-        return false;                  // HUD mode control
-      if (screenSize<8)                // function on default F5
-        while (screenSize<8 || !hud_displayed) // make hud visible
-          M_SizeDisplay(1);            // when configuring it
-      else
-        {
-        hud_displayed = 1;               //jff 3/3/98 turn hud on
-        hud_active = (hud_active+1)%3;   // cycle hud_active
-        if (!hud_active)                 //jff 3/4/98 add distributed
-          {
-          hud_distributed = !hud_distributed; // to cycle
-          HU_MoveHud(); //jff 3/9/98 move it now to avoid glitch
-          }
-        }
-      return true;
-      }
-
-    /* killough 10/98: allow key shortcut into Setup menu */
-    if (ch == key_setup) {
-      M_StartControlPanel();
-      S_StartSound(NULL,sfx_swtchn);
-      M_SetupNextMenu(&SetupDef);
-      return true;
-    }
-  }
   // Pop-up Main menu?
-
   if (!menuactive)
     {
-    if (ch == key_escape)                                     // phares
+		if (ch == key_escape)
       {
       M_StartControlPanel ();
       S_StartSound(NULL,sfx_swtchn);
@@ -4355,17 +4221,19 @@ boolean M_Responder (event_t* ev) {
 
   // phares 3/26/98 - 4/11/98:
   // Setup screen key processing
-
   if (setup_active) {
+		lprintf(LO_INFO, "M_Responder: setup_active\n");
     setup_menu_t* ptr1= current_setup_menu + set_menu_itemon;
     setup_menu_t* ptr2 = NULL;
 
     // phares 4/19/98:
-    // Catch the response to the 'reset to default?' verification
-    // screen
-
+		// Catch the response to the 'reset to default?' verification screen
     if (default_verify)
       {
+			// Jefklak 19/11/06 - parse correct key(s) to quit.
+			if(ev->type == ev_keydown && (ev->data1 == KEYD_RCTRL || ev->data1 == KEYD_ENTER))
+				ch = 'y';
+
   if (toupper(ch) == 'Y') {
     M_ResetDefaults();
     default_verify = false;
@@ -4378,9 +4246,9 @@ boolean M_Responder (event_t* ev) {
   return true;
       }
 
-      // Common processing for some items
-
+		// Common processing for SETUP screen, when SELECTED an entry (not used with saving)
       if (setup_select) { // changing an entry
+			lprintf(LO_INFO, "M_Responder: select: ");
   if (ch == key_menu_escape) // Exit key = no change
     {
     M_SelectDone(ptr1);                           // phares 4/17/98
@@ -4390,6 +4258,7 @@ boolean M_Responder (event_t* ev) {
 
   if (ptr1->m_flags & S_YESNO) // yes or no setting?
     {
+				lprintf(LO_INFO, "S_YESNO\n");
     if (ch == key_menu_enter) {
       *ptr1->var.def->location.pi = !*ptr1->var.def->location.pi; // killough 8/15/98
 
@@ -4401,8 +4270,7 @@ boolean M_Responder (event_t* ev) {
       // killough 8/15/98: add warning messages
 
       if (ptr1->m_flags & (S_LEVWARN | S_PRGWARN))
-        warn_about_changes(ptr1->m_flags &    // killough 10/98
-         (S_LEVWARN | S_PRGWARN));
+						warn_about_changes(ptr1->m_flags & (S_LEVWARN | S_PRGWARN));
       else
         M_UpdateCurrent(ptr1->var.def);
 
@@ -4415,6 +4283,7 @@ boolean M_Responder (event_t* ev) {
 
   if (ptr1->m_flags & S_CRITEM)
     {
+				lprintf(LO_INFO, "S_CRITEM\n");
     if (ch != key_menu_enter)
       {
       ch -= 0x30; // out of ascii
@@ -4430,6 +4299,7 @@ boolean M_Responder (event_t* ev) {
 
   if (ptr1->m_flags & S_NUM) // number?
     {
+				lprintf(LO_INFO, "S_NUM\n");
       if (setup_gather) { // gathering keys for a value?
         /* killough 10/98: Allow negatives, and use a more
          * friendly input method (e.g. don't clear value early,
@@ -4490,6 +4360,7 @@ boolean M_Responder (event_t* ev) {
       // Key Bindings
 
       if (set_keybnd_active) // on a key binding setup screen
+			lprintf(LO_INFO, "keybnd_active\n");
   if (setup_select)    // incoming key or button gets bound
     {
       if (ev->type == ev_joystick)
@@ -4635,7 +4506,7 @@ boolean M_Responder (event_t* ev) {
       *ptr2->var.def->location.pi = *ptr1->var.def->location.pi;
       goto end;
           }
-        end:
+end:
     *ptr1->var.def->location.pi = ch;
         }
 

@@ -47,6 +47,7 @@
 
 // #include "SDL.h"
 
+#include "i_main.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "doomstat.h"
@@ -248,13 +249,50 @@ static int mouse_currently_grabbed;
 
 char weapons[9] = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 int weapon_index = 0;
+bool weapon_shotgun_cycled = false;
 
+/**
+ * Jefklak 19/11/06 - Add zooming keys (B+L/R)
+ * 23/11/06 - Powersave mode added (thanks to Mr. Snowflake)
+ * in DOOM II, regular shotgun added to weapon index pool
+ **/
 void I_StartTic (void)
 {
 	scanKeys();	// Do DS input housekeeping
 	u16 keys = keysDown();
 	touchPosition touch = touchReadXY();
 	
+	if(!DS_LCDON)
+	{
+		if(!(keysHeld() & KEY_LID))
+		{		
+			powerON(POWER_ALL_2D); // turn on everything
+			NDSX_SetLedBlink_Off();
+			lcdMainOnTop();
+			S_StartSound(NULL,sfx_swtchn);
+	  
+			DS_LCDON = true;
+			return;
+		}
+	}
+	else
+	{
+		if(keysHeld() & KEY_LID)
+		{
+			event_t event;
+			event.type = ev_keydown;
+			event.data1 = KEYD_ESCAPE;
+			D_PostEvent(&event);
+
+			powerOFF(POWER_ALL_2D); // turn off everything
+			NDSX_SetLedBlink_On();
+			NDSX_SetLedBlink_Slow();
+
+			DS_LCDON = false;
+			return;
+		}
+	}
+
 	if (keys & KEY_UP || ((keysHeld() & KEY_TOUCH) && touch.py < 80))
 	{
 		event_t event;
@@ -289,6 +327,14 @@ void I_StartTic (void)
 	
 	if (keys & KEY_START)
 	{
+		// Jefklak 21/11/06 - allow select+start = switchConsole
+		if(FUNC_PRESS)
+		{
+			gen_console_enable = (gen_console_enable? 0 : 1);
+			switchConsole();
+		}
+		FUNC_PRESS = true;
+		// END
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = KEYD_ESCAPE;
@@ -297,6 +343,17 @@ void I_StartTic (void)
 	
 	if (keys & KEY_SELECT)
 	{
+		// Jefklak 21/11/06 - allow select+start = switchConsole
+		if(FUNC_PRESS)
+		{
+			gen_console_enable = (gen_console_enable? 0 : 1);
+			switchConsole();
+		}
+		else if(B_ZOOMING)	// switch DS brigtness mode (if DSLite)
+			DStoggleBrightness();
+
+		FUNC_PRESS = true;
+		// END
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = KEYD_ENTER;
@@ -313,6 +370,7 @@ void I_StartTic (void)
 	
 	if (keys & KEY_B)
 	{
+		B_ZOOMING = true; // remember this
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = ' ';
@@ -333,7 +391,23 @@ void I_StartTic (void)
 		
 		while (!good)
 		{
+			// Jefklak 23/11/06 - regular shotgun in DOOMII please
+			if(gamemission == doom2 && weapon_index == 2)
+			{
+				if(!weapon_shotgun_cycled)
+					weapon_shotgun_cycled = true;
+				else
+				{
+					weapon_index++;
+					weapon_shotgun_cycled = true;
+				}
+			}
+			else
+			{
 			weapon_index++;
+				weapon_shotgun_cycled = false;
+			}
+
 			if (weapon_index >= NUMWEAPONS) weapon_index = 0;
 			if (players[displayplayer].weaponowned[weapon_index]) good = true;
 		}
@@ -348,18 +422,40 @@ void I_StartTic (void)
 	
 	if (keys & KEY_R)
 	{
+		// Jefklak 19/11/06 - also send a zoom event
+		if(B_ZOOMING)
+		{
+			event_t zoom;
+			zoom.type = ev_keydown;
+			zoom.data1 = '-'; // see m_misc.c defaults
+			D_PostEvent(&zoom);
+		}
+		else
+		{
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = '.';
 		D_PostEvent(&event);
 	}
+	}
 	
 	if (keys & KEY_L)
 	{
+		// Jefklak 19/11/06 - also send a zoom event
+		if(B_ZOOMING)
+		{
+			event_t zoom;
+			zoom.type = ev_keydown;
+			zoom.data1 = '='; // see m_misc.c defaults
+			D_PostEvent(&zoom);
+		}
+		else
+		{
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = ',';
 		D_PostEvent(&event);
+	}
 	}
 	
 	keys = keysUp();
@@ -398,6 +494,7 @@ void I_StartTic (void)
 	
 	if (keys & KEY_START)
 	{
+		FUNC_PRESS = false;	// stop checking for other func key
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = KEYD_ESCAPE;
@@ -406,6 +503,7 @@ void I_StartTic (void)
 	
 	if (keys & KEY_SELECT)
 	{
+		FUNC_PRESS = false;
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = KEYD_ENTER;
@@ -422,6 +520,7 @@ void I_StartTic (void)
 	
 	if (keys & KEY_B)
 	{
+		B_ZOOMING = false; // stop zooming
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = ' ';
@@ -581,15 +680,23 @@ static void I_UploadNewPalette(int pal)
 		g = (u8)colours[i+256*pal].g;
 		b = (u8)colours[i+256*pal].b;
 		
+		// Jefklak 20/11/06 - also update lower screen palette
 		BG_PALETTE[i]=RGB8(r,g,b);
+		if(!gen_console_enable)
+			BG_PALETTE_SUB[i]=RGB8(r,g,b);
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // Graphics API
 
+// Jefklak 20/11/06 - Free used buffers (avoid crash, only purge 2 mainly used ones)
 void I_ShutdownGraphics(void)
 {
+	int i;
+	for(i = 0; i < 2; i++)
+		if(screens[i])
+			free(screens[i]);
 }
 
 //
@@ -610,39 +717,38 @@ void I_FinishUpdate (void)
   if (I_SkipFrame()) return;
 
 #ifndef GL_DOOM
-      int h;
-      int w;
-      unsigned char *src;
-      unsigned char *dest;
+	int h = 200;
+	int w = 320;
+	int step = 512;
+	unsigned char *srcmain = screens[0];
+	unsigned char *srcsub = screens[1];
+	unsigned char *destmain = NULL, *destsub = NULL;
 
-      //dest=(char *)screen->pixels;
-      src=screens[0];
-//      w=screen->w;
-//      h=screen->h;
-
-	h = 200;
-	w = 320;
-	dest = (unsigned char *)BG_GFX;
+	// Jefklak 19/11/06 - sub screen rendering
+	destmain = (unsigned char *)BG_GFX;
+	if(!gen_console_enable)
+		destsub = (unsigned char *)BG_GFX_SUB;
       for (; h>0; h--)
       {
-        //memcpy(dest,src,w);
-		dmaCopy(src, dest, w);
-        dest+=512;
-        src+=SCREENWIDTH;
-      }
-//	  int y;
-//	  	for(y = 0; y < h; y++)
-//			dmaCopy(&src[y*w], &BG_GFX[y*128], w);
+		dmaCopy(srcmain, destmain, w);
+		destmain += step;
+		srcmain += SCREENWIDTH;
 
-	
+		if(!gen_console_enable)
+		{
+			// dmaCopy() uses DMA_CR(3) with syncs
+			dmaCopy(srcsub, destsub, w);
+			destsub += step;
+			srcsub += SCREENWIDTH;
+		}
+	}
 
   // Update the display buffer (flipping video pages if supported)
   // If we need to change palette, that implicitely does a flip
   if (newpal != NO_PALETTE_CHANGE) {
     I_UploadNewPalette(newpal);
     newpal = NO_PALETTE_CHANGE;
-  } /* else
-    SDL_Flip(screen); */
+	}
 #else
   // proff 04/05/2000: swap OpenGL buffers
   gld_Finish();
@@ -675,17 +781,6 @@ void I_ShutdownSDL(void)
 
 void I_PreInitGraphics(void)
 {
-  // Initialize SDL
-/*  unsigned int flags;
-  if (!(M_CheckParm("-nodraw") && M_CheckParm("-nosound")))
-    flags = SDL_INIT_VIDEO;
-#ifdef _DEBUG
-  flags |= SDL_INIT_NOPARACHUTE;
-#endif
-  if ( SDL_Init(flags) < 0 ) {
-    I_Error("Could not initialize SDL [%s]", SDL_GetError());
-  }*/
-
   atexit(I_ShutdownSDL);
 }
 

@@ -109,6 +109,9 @@ boolean nomusicparm;
 //jff 4/18/98
 extern boolean inhelpscreens;
 
+// Jefklak 23/11/06 - powersave mode
+boolean DS_LCDON = true;
+
 skill_t startskill;
 int     startepisode;
 int     startmap;
@@ -250,6 +253,16 @@ void D_Display (void)
   } else if (gametic != basetic) { // In a level
     boolean redrawborderstuff;
 
+	// Jefklak 19/11/06 - always call map draw method, in follow mode.
+	// code below: removed most automapmode & am_active checks - should always be drawn.
+	if(!gen_console_enable)
+	{
+		AM_Start();
+		automapmode &= ~am_follow;
+		AM_Drawer();
+	}
+	// END
+
     HU_Erase();
 
     if (setsizeneeded) {               // change the view size if needed
@@ -258,8 +271,10 @@ void D_Display (void)
     }
 
     // Work out if the player view is visible, and if there is a border
-    viewactive = (!(automapmode & am_active) || (automapmode & am_overlay)) && !inhelpscreens;
-    isborder = viewactive ? (viewheight != SCREENHEIGHT) : (!inhelpscreens && (automapmode & am_active));
+    //viewactive = (!(automapmode & am_active) || (automapmode & am_overlay)) && !inhelpscreens;
+	viewactive = (!(automapmode & am_overlay)) && !inhelpscreens;
+    //isborder = viewactive ? (viewheight != SCREENHEIGHT) : (!inhelpscreens && (automapmode & am_active));
+	isborder = viewactive ? (viewheight != SCREENHEIGHT) : !inhelpscreens;
 
     if (oldgamestate != GS_LEVEL) {
       R_FillBackScreen ();    // draw the pattern into the back screen
@@ -283,9 +298,11 @@ void D_Display (void)
     // Now do the drawing
     if (viewactive)
       R_RenderPlayerView (&players[displayplayer]);
-    if (automapmode & am_active)
-      AM_Drawer();
+	// Jefklak 21/11/06 - mostly draw status, but avoid flickering when fullscreen & console.
+	if(gen_console_enable)
     ST_Drawer((viewheight != SCREENHEIGHT) || ((automapmode & am_active) && !(automapmode & am_overlay)), redrawborderstuff);
+	else
+		ST_Drawer(true, redrawborderstuff);
 #ifndef GL_DOOM
     R_DrawViewBorder();
 #endif
@@ -372,9 +389,12 @@ static void D_DoomLoop(void)
       if (ffmap == gamemap) ffmap = 0;
 
       // process one or more tics
+	  // Jefklak 23/11/06 - powersave mode: stop 'playing' (not while net).
       if (singletics)
         {
           I_StartTic ();
+		  if(DS_LCDON || netgame)
+		  {
           G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
           if (advancedemo)
             D_DoAdvanceDemo ();
@@ -383,22 +403,32 @@ static void D_DoomLoop(void)
           gametic++;
           maketic++;
         }
+		  else
+		  {
+			  swiWaitForVBlank();
+			  //continue;
+		  }
+        }
       else {
+		  //if(DS_LCDON || netgame)
         TryRunTics (); // will run at least one tic
 		}
 
+	  if(DS_LCDON || netgame)
+	  {
       // killough 3/16/98: change consoleplayer to displayplayer
       if (players[displayplayer].mo) // cph 2002/08/10
 	S_UpdateSounds(players[displayplayer].mo);// move positional sounds
 	
     // Update display, next frame, with current state.
     D_Display();
-/*
+	/*
       // CPhipps - auto screenshot
       if (auto_shot_fname && !--auto_shot_count) {
   auto_shot_count = auto_shot_time;
   M_DoScreenShot(auto_shot_fname);
       }*/
+    }
     }
 }
 
@@ -564,9 +594,12 @@ void D_DoAdvanceDemo(void)
 
 //
 // D_StartTitle
+// Jefklak 19/11/06 - on title screen, switch to non-console
 //
 void D_StartTitle (void)
 {
+	if(!gen_console_enable)
+		switchConsole();
   gameaction = ga_nothing;
   demosequence = -1;
   D_AdvanceDemo();
@@ -1398,17 +1431,6 @@ void D_DoomMainSetup(void)
 
     I_SetRes(w, h);
   }
-
-  if ((p = M_CheckParm("-fullscreen")))
-      use_fullscreen = 1;
-
-  if ((p = M_CheckParm("-nofullscreen")))
-      use_fullscreen = 0;
-
-#ifdef GL_DOOM
-  // proff 04/05/2000: for GL-specific switches
-  gld_InitCommandLine();
-#endif
 
   //jff 9/3/98 use logical output routine
   lprintf(LO_INFO,"V_Init: allocate screens.\n");

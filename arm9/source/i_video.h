@@ -60,6 +60,11 @@ void I_ReadScreen (byte* scr);
  */
 void I_StartTic (void);
 
+// Jefklak 19/11/06 - keep a boolean for zooming purposes
+bool B_ZOOMING;
+bool FUNC_PRESS;
+// END
+
 /* I_StartFrame
  * Called by D_DoomLoop,
  * called before processing any tics in a frame
@@ -72,6 +77,5 @@ void I_StartTic (void);
 void I_StartFrame (void);
 
 extern int use_doublebuffer;  /* proff 2001-7-4 - controls wether to use doublebuffering*/
-extern int use_fullscreen;  /* proff 21/05/2000 */
 
 #endif

@@ -15,6 +15,8 @@
 #include <nds.h>
 #include <stdlib.h>
 #include <dswifi7.h>
+#include "../../ndsx_ledblink.h"	// Jefklak 21/11/06 - LED stuff & brightness
+#include "../../ndsx_brightness.h"	// can only be accessed by ARM7 CPU. Heh?
 
 
 //---------------------------------------------------------------------------------
@@ -137,6 +139,12 @@ void arm7_fifo() { // check incoming fifo messages
 		Wifi_Init(fifotemp);
 		Wifi_SetSyncHandler(arm7_synctoarm9); // allow wifi lib to notify arm9
 	}
+
+	// Jefklak 21/11/06 - LED/Brightness/clock passing in queue
+	NDSX_LedBlinkFifo(msg);
+	NDSX_BrightnessFifo(msg);
+	NDSX_ClockFifo(msg);
+	// END
 }
 
 //---------------------------------------------------------------------------------

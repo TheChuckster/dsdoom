@@ -35,4 +35,7 @@
 
 extern const char version_date[];
 
+// Jefklak 21/11/06 - DSDOOM version.
+#define VER_DSDOOM "1.1.0"
+
 #endif

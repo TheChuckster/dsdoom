@@ -61,6 +61,7 @@ extern const char *s_D_DEVSTR; // = D_DEVSTR;
 //#define D_CDROM       "CD-ROM Version: default.cfg from c:\\doomdata\n"
 extern const char *s_D_CDROM; // = D_CDROM;
 
+
 //
 //      M_Menu.C
 //
@@ -82,6 +83,13 @@ extern const char *s_SAVEDEAD; // = SAVEDEAD;
 extern const char *s_QSPROMPT; // = QSPROMPT;
 //#define QLPROMPT      "do you want to quickload the game named\n\n'%s'?\n\n"PRESSYN
 extern const char *s_QLPROMPT; // = QLPROMPT;
+
+// Jefklak 21/11/06
+extern char **mapnames[];
+extern char **mapnames2[];
+extern char **mapnamesp[];
+extern char **mapnamest[];
+// END
 
 /*
 #define NEWGAME       \
@@ -106,6 +114,16 @@ extern const char *s_NIGHTMARE; // = NIGHTMARE;
 "you need to order the entire trilogy.\n\n"PRESSKEY
 */
 extern const char *s_SWSTRING; // = SWSTRING;
+
+// Jekflak 20/11/06 - messages additions
+extern const char *s_SCREENSWAP;
+extern const char *s_CONSOLESWAPON;
+extern const char *s_CONSOLESWAPOFF;
+extern const char *s_LOADING;
+extern const char *s_SAVING;
+extern const char *s_CHEATS;
+extern const char *s_DSBRIGHTNESS;
+// END
 
 //#define MSGOFF        "Messages OFF"
 extern const char *s_MSGOFF; // = MSGOFF;

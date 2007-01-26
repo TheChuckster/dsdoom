@@ -82,6 +82,14 @@ static void cheat_pitch();
 static void cheat_megaarmour();
 static void cheat_health();
 
+// Jefklak 21/11/06 - allow cheat mode setup in config
+int gen_cheat_enable = 0;
+void gen_cheat()
+{
+	cheat_god();
+	cheat_kfa();
+}
+
 //-----------------------------------------------------------------------------
 //
 // List of cheat codes, functions, and special argument indicators.

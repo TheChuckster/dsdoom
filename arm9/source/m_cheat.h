@@ -54,5 +54,9 @@ extern struct cheat_s {
 boolean M_FindCheats(int key);
 
 extern int idmusnum;
+// Jefklak 21/11/06 
+extern int gen_cheat_enable;
+void gen_cheat();
+// END
 
 #endif

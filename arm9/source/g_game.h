@@ -33,6 +33,7 @@
 #include "doomdef.h"
 #include "d_event.h"
 #include "d_ticcmd.h"
+#include "m_cheat.h"
 
 //
 // GAME
@@ -89,6 +90,8 @@ void G_MakeSpecialEvent(buttoncode_t bc, ...); /* cph - new event stuff */
 void doom_printf(const char *, ...) __attribute__((format(printf,1,2)));
 
 // killough 5/2/98: moved from m_misc.c:
+
+extern int gen_cheat_enable; // Jefklak 21/11/06
 
 extern int  key_right;
 extern int  key_left;

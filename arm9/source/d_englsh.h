@@ -63,6 +63,15 @@
 
 #define MSGOFF      "Messages OFF"
 #define MSGON       "Messages ON"
+// Jefklak 20/11/06 - Add some defines.
+#define MSGSCREENSWAP "Screens swapped."
+#define MSGCONSOLESWAPON "Console mode ON"
+#define MSGCONSOLESWAPOFF "Console mode OFF"
+#define MSGLOADING "Loading, Get Ready!"
+#define MSGSAVING "Saving, Sit Tight!"
+#define MSGCHEATS "Cheat mode Altered."
+#define MSGDSBRIGHTNESS "DS Brightness mode Altered."
+// END
 #define NETEND      "you can't end a netgame!\n\n"PRESSKEY
 #define ENDGAME     "are you sure you want to end the game?\n\n"PRESSYN
 #define RESTARTLEVEL "restart the level?\n\n"PRESSYN

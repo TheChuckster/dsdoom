@@ -60,10 +60,12 @@
 #include "SDL.h"
 #endif
 #include "doomstat.h"
+#include "st_lib.h"
+#include "d_deh.h"					// Jefklak 20/11/06 - allow grabbing of s_STRINGCAP vars
+#include "version.h"				// ^ DS DOOM version number
+#include "../../ndsx_ledblink.h"	// ^ LED manipulator
+#include "../../ndsx_brightness.h"	// ^ Brightness manipulator
 
-/*#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>*/
 
 #include <fat.h>
 #include <dswifi9.h>
@@ -376,17 +378,24 @@ void I_SafeExit(int rc)
     }
 }
 
+// Jefklak 19/11/06 - add ShutdownGraphics() call (why wasn't this used before?)
+// also turn DS power off.
 void I_Quit (void)
 {
   if (!has_exited)
     has_exited=1;   /* Prevent infinitely recursive exits -- killough */
 
   if (has_exited == 1) {
+	I_ShutdownGraphics();
     I_EndDoom();
     if (demorecording)
       G_CheckDemoStatus();
     M_SaveDefaults ();
   }
+
+  // Jefklak 19/11/06 - power the ting off, please.
+  free(DS_USERNAME);
+  powerOFF(POWER_ALL);
 }
 
 #ifdef SECURE_UID
@@ -457,14 +466,102 @@ void StartWifi()
 #endif
 }
 
+// Jefklak 19/11/06 - Switches lower DS screen back to console or vice versa.
+int gen_screen_swap = 0;
+int gen_console_enable = 1;
+void switchConsole()
+{
+	// ### LOWER SCREEN #### //
+	if(gen_console_enable)
+	{
+		videoSetModeSub(MODE_0_2D|DISPLAY_BG0_ACTIVE);
+		vramSetBankC(VRAM_C_SUB_BG);
+
+		SUB_BG0_CR = BG_MAP_BASE(31);
+		BG_PALETTE_SUB[255] = RGB15(31,31,31);
+
+		consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
+		//consoleClear();
+		FG = 0;
+
+		lprintf(LO_INFO, "%s (FG buffer is %i)\n", s_CONSOLESWAPON, FG);
+		if(gamestate == GS_LEVEL)
+			players[consoleplayer].message = s_CONSOLESWAPON;
+	}
+	else
+	{
+		videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
+		vramSetBankC(VRAM_C_SUB_BG);
+
+		SUB_BG3_CR = BG_BMP8_512x512;
+		SUB_BG3_XDX = (320 * 256)/256; //1 << 8;
+		SUB_BG3_XDY = 0; // BG SCALING X
+		SUB_BG3_YDX = 0; // BG SCALING Y
+		SUB_BG3_YDY = (200*256)/192; // << 8;
+		SUB_BG3_CX = 0;
+		SUB_BG3_CY = 0;
+		memset(BG_GFX_SUB, 0, 512 * 512 * 2);
+
+		/**
+		 * adjusted in st_lib.h (static int instead of #define)
+		 * hu_lib.h includes st_lib.h and uses same FG screen[x] identifier
+		 * if no console, draw stats to lower screen!
+		 * Also increase upper screen display size.
+		 **/
+		FG = 1;
+		if(gamestate == GS_LEVEL)
+			players[consoleplayer].message = s_CONSOLESWAPOFF;
+	}
+
+	if(gamestate == GS_LEVEL)
+		M_SizeDisplay(FG);
+}
+
+// Jefklak 21/11/06 - brightness wrapper for ndsx_brightness.h
+// Only apply brightness register changes if DSLite.
+void DStoggleBrightness()
+{
+	if(!NDSX_IsLite())	// SetBrigtness_Next() doesn't work anyway...
+		return;
+
+	NDSX_SetBrightness_Next();
+	lprintf(LO_INFO, "%s\n", s_DSBRIGHTNESS);
+	if(gamestate == GS_LEVEL)
+		players[consoleplayer].message = s_DSBRIGHTNESS;
+}
+
+// Jefklak 21/11/06 - Finally works! retrieve profile username
+// Had to be wrapped to ARM7... How weird.
+char *DS_USERNAME = NULL;
+void DSgetUserName()
+{
+	int i;
+	int nameLen = NDSX_GetPersonalNameLen();
+	DS_USERNAME = malloc(nameLen + 1);
+
+	// safety fail
+	if(nameLen <= 0)
+	{
+		DS_USERNAME = "Player1";
+		return;
+	}
+
+	for(i=0; i < nameLen; i++)
+	{
+		// get ascii-bits from utf-16 name
+		*(DS_USERNAME + i) = (char)(NDSX_GetPersonalName() & 255);
+	}
+}
+
 //int main(int argc, const char * const * argv)
 int main(int argc, char **argv)
 {
-  myargc = argc;
-  myargv = argv;
+	myargc = argc;
+	myargv = argv;
 
-  	powerON(POWER_ALL);
+	powerON(POWER_ALL);
 	REG_EXEMEMCNT=0xe800;
+	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
 	
 	irqInit();	// Enable our quintessential vblank interrupt
 	irqSet(IRQ_VBLANK, NULL);
@@ -475,38 +572,42 @@ int main(int argc, char **argv)
 	TIMER0_CR=TIMER_DIV_1024;
 	TIMER1_CR=TIMER_CASCADE;
  
-	DISPLAY_CR=MODE_5_2D | DISPLAY_BG3_ACTIVE;
-	vramSetMainBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_MAIN_BG_0x06020000, VRAM_C_SUB_BG, VRAM_D_LCD);
- 	videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE);
-	
-	SUB_BG0_CR = BG_MAP_BASE(31);
-	BG_PALETTE_SUB[255] = RGB15(31,31,31);
-	consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
+	// Jefklak 19/11/06 - adjust upper/lower screen stuff
+	// ### UPPER SCREEN #### //
+	videoSetMode(MODE_5_2D|DISPLAY_BG3_ACTIVE);	// BG3 only - extended rotation
+	vramSetBankA(VRAM_A_MAIN_BG_0x06000000);		// same as VRAM_A_MAIN_BG
+	vramSetBankB(VRAM_B_MAIN_BG_0x06020000);		// use second bank for main screen - 256 KiB
 
-	BG3_CR = BG_BMP8_512x512;
+	BG3_CR = BG_BMP8_512x512;					// BG3 Control register, 8 bits
     BG3_XDX = (320 * 256)/256; //1 << 8;
-    BG3_XDY = 0;
-    BG3_YDX = 0;
+    BG3_XDY = 0; // BG SCALING X
+    BG3_YDX = 0; // BG SCALING Y
     BG3_YDY = (200*256)/192; // << 8;
     BG3_CX = 0;
     BG3_CY = 0;
-	
-	lcdSwap();
-	
-	iprintf("Survived graphics init.\n");
 
+	// Disable LED blinking if the passcard does not do it for us (DSX).
+	NDSX_SetLedBlink_Off();
+
+	// clear upper screen (black) instead of junk
+	switchConsole();
+	memset(BG_GFX, 0, 512 * 512 * 2);
+	swiWaitForVBlank();
+	DSgetUserName();	// essential, retrieves username via Fifo buffer.
+
+	consoleClear();
+	iprintf("Welcome %s!\nThis is DS DOOM Build %s\n\n", DS_USERNAME, VER_DSDOOM);
 	if (!fatInitDefault())
 	{
 		iprintf("Unable to initialize media device!\n");
 	} else {
-		iprintf("libfat initialized.\n");
+		iprintf("fatInitDefault(): initialized.\n");
 	}
-	
+
 	iprintf("\x1b[4;0HChoose your game type\n\n");
 	iprintf("      Standard game\n      Network game");
 	
 	int line = 6;
-	
 	while(1) {
 		iprintf("\x1b[%d;4H]\x1b[15C[",line);
 		swiWaitForVBlank();
@@ -562,7 +663,6 @@ int main(int argc, char **argv)
 */
   /* cphipps - call to video specific startup code */
   I_PreInitGraphics();
-
   D_DoomMain ();
   return 0;
 }
