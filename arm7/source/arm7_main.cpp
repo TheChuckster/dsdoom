@@ -175,6 +175,7 @@ int main(int argc, char ** argv) {
 	irqEnable(IRQ_FIFO_NOT_EMPTY);
 	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_RECV_IRQ;
 
+	IPC->mailBusy = 0;
 
 	// Keep the ARM7 out of main RAM
 	while (1) swiWaitForVBlank();
