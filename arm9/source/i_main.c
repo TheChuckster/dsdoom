@@ -78,13 +78,6 @@ void debug_print_stub(char *string)
 }
 #endif
 
-#include "buddyblock.h"
-
-//---------------------------------------------------------------------------------
-// Dswifi stub functions
-void * sgIP_malloc(int size) { return blockAlloc(size); }
-void sgIP_free(void * ptr) { blockFree(ptr); }
-
 // sgIP_dbgprint only needed in debug version
 void sgIP_dbgprint(char * txt, ...) {	}
 
@@ -419,7 +412,6 @@ void StartWifi()
 		*((volatile u16 *)0x0400010E) = 0; // disable timer3
 		
 //		irqInit(); 
-		initBuddyBlocks(5);
 		irqSet(IRQ_TIMER3, Timer_50ms); // setup timer IRQ
 		irqEnable(IRQ_TIMER3);
 		irqSet(IRQ_FIFO_NOT_EMPTY, arm9_fifo); // setup fifo IRQ
