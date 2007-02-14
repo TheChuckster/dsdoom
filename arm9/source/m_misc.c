@@ -369,7 +369,7 @@ default_t defaults[] =
    // CONFIG NAME // VAR NAME // DEFAULT VAL // MIN VAL // MAX VAL // VAL TYPE // ?
   {"gen_screen_swap", {&gen_screen_swap}, {0}, 0, 1,
   def_bool,ss_none},
-  {"gen_console_enable", {&gen_console_enable}, {0}, 0, 1,
+  {"gen_console_enable", {&gen_console_enable}, {1}, 0, 1,
   def_bool,ss_none},
   {"gen_cheat_enable", {&gen_cheat_enable}, {0}, 0, 1,
   def_bool,ss_none},

@@ -2492,6 +2492,7 @@ void G_BeginRecording (void)
 				     v = 214; 
 				     longtics = 1;
 				     break;
+	    default: break;
       }
       *demo_p++ = v;
     }

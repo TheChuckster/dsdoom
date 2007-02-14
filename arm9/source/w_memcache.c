@@ -160,5 +160,5 @@ void W_UnlockLumpNum(int lump)
 
 int W_LumpIsCached( int lump) {
 
-	return cachelump[lump].cache;
+	return (int)cachelump[lump].cache;
 }

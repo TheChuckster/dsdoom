@@ -62,6 +62,7 @@ typedef unsigned long long int uint_64_t;
 
 #undef PATH_MAX
 #define PATH_MAX 1024
+#undef S_ISDIR
 #define S_ISDIR(x) (((sbuf.st_mode & S_IFDIR)==S_IFDIR)?1:0)
 
 #define CONSTFUNC __attribute__((const))
