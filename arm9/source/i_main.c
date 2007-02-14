@@ -53,6 +53,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "m_misc.h"
+#include "m_menu.h"
 #include "i_sound.h"
 #include "i_main.h"
 #include "lprintf.h"
@@ -561,8 +562,8 @@ int main(int argc, char **argv)
 	
 	TIMER0_DATA=0;	// Set up the timer
 	TIMER1_DATA=0;
-	TIMER0_CR=TIMER_DIV_1024;
-	TIMER1_CR=TIMER_CASCADE;
+	TIMER0_CR=TIMER_DIV_1024 | TIMER_ENABLE;
+	TIMER1_CR=TIMER_CASCADE | TIMER_ENABLE;
  
 	// Jefklak 19/11/06 - adjust upper/lower screen stuff
 	// ### UPPER SCREEN #### //
