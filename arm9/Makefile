@@ -31,7 +31,8 @@ CFLAGS	:=	-g -Wall -O2\
 		-fno-strict-aliasing -ffast-math \
 		$(ARCH)
 
-CFLAGS		+=	$(INCLUDE) -DARM9 -D__NDS__
+CFLAGS		+=	$(INCLUDE) -DARM9 -D__NDS__ -DVER_DSDOOM=\"$(DSDOOM_VERSION)\"
+
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH)
@@ -118,6 +119,11 @@ $(ARM9BIN)	:	$(ARM9ELF)
 $(ARM9ELF)	:	$(OFILES)
 	@echo linking $(notdir $@)
 	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+
+#---------------------------------------------------------------------------------
+# I_main dependent on top level Makefile for version information
+#---------------------------------------------------------------------------------
+i_main.o : $(TOPDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data 

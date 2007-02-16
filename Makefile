@@ -10,40 +10,35 @@ include $(DEVKITARM)/ds_rules
 export TARGET		:=	dsdoom
 export TOPDIR		:=	$(CURDIR)
 
+export DSDOOM_VERSION	:=	1.1.2SVN
 
-ARCH	:=	-mthumb -mthumb-interwork
-
-# note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
-# *insists* it has a FPU or VFP, and it won't take no for an answer!
-CFLAGS	:=	-g -Wall -O2\
- 			-mcpu=arm9tdmi -mtune=arm9tdmi -fomit-frame-pointer\
-			-ffast-math \
-			$(ARCH)
-
-CFLAGS	+=	$(INCLUDE) -DARM9
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
-
-ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
-
-
-#---------------------------------------------------------------------------------
-# path to tools - this can be deleted if you set the path in windows
-#---------------------------------------------------------------------------------
-export PATH		:=	$(DEVKITARM)/bin:$(PATH)
 
 .PHONY: $(TARGET).arm7 $(TARGET).arm9
 
 #---------------------------------------------------------------------------------
-# main targets
+#all: $(TARGET).fcsr.nds
+
 #---------------------------------------------------------------------------------
-all: $(TARGET).ds.gba
+# targets for building FCSR images
+#---------------------------------------------------------------------------------
+#$(TARGET).fcsr.nds : $(TARGET).gba.nds
+#	padbin 512 $<
+#	cat -B $< doom.fcsr > $@
+#	dlditool.exe fcsr.dldi $@
 
-$(TARGET).ds.gba	: $(TARGET).nds
+all : $(TARGET).gba.nds
 
+#---------------------------------------------------------------------------------
+# nds target with gba header for devices which need rom startup code
+#---------------------------------------------------------------------------------
+$(TARGET).gba.nds	: $(TARGET).nds
+	dsbuild $< -o $@
+
+#---------------------------------------------------------------------------------
+# standard nds target
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9
-	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -o banner.bmp -b icon.bmp "DS DOOM;prBoom DS Port v1.1.1"
+	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -o banner.bmp -b icon.bmp "DS DOOM;prBoom DS Port v$(DSDOOM_VERSION)"
 
 #---------------------------------------------------------------------------------
 $(TARGET).arm7	: arm7/$(TARGET).elf
