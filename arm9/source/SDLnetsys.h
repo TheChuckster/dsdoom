@@ -46,7 +46,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define closesocket	close
+//#define closesocket	close
 
 #define SOCKET	int
 #define INVALID_SOCKET	-1

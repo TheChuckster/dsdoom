@@ -541,9 +541,11 @@ void DSgetUserName()
 
 	for(i=0; i < nameLen; i++)
 	{
-		// get ascii-bits from utf-16 name
-		*(DS_USERNAME + i) = (char)(NDSX_GetPersonalName() & 255);
+		// pretend to get ascii-bits from utf-16 name
+		DS_USERNAME[i] = (char)(NDSX_GetPersonalName() & 255);
 	}
+	// zero terminate the string
+	DS_USERNAME[i] = 0;
 }
 
 //int main(int argc, const char * const * argv)
@@ -553,7 +555,7 @@ int main(int argc, char **argv)
 	myargv = argv;
 
 	powerON(POWER_ALL);
-	REG_EXEMEMCNT=0xe800;
+	REG_EXMEMCNT=0xe800;
 	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
 	
 	irqInit();	// Enable our quintessential vblank interrupt
@@ -590,6 +592,8 @@ int main(int argc, char **argv)
 
 	consoleClear();
 	iprintf("Welcome %s!\nThis is DS DOOM Build %s\n\n", DS_USERNAME, VER_DSDOOM);
+	iprintf("prBoom ported by\nTheChuckster & WinterMute\n");
+	iprintf("some additions by JefKlak\n");
 	if (!fatInitDefault())
 	{
 		iprintf("Unable to initialize media device!\n");
@@ -597,22 +601,22 @@ int main(int argc, char **argv)
 		iprintf("fatInitDefault(): initialized.\n");
 	}
 
-	iprintf("\x1b[4;0HChoose your game type\n\n");
+	iprintf("\x1b[8;0HChoose your game type\n\n");
 	iprintf("      Standard game\n      Network game");
 	
-	int line = 6;
+	int line = 10;
 	while(1) {
 		iprintf("\x1b[%d;4H]\x1b[15C[",line);
 		swiWaitForVBlank();
 		scanKeys();
 		int keys = keysDown();
 		iprintf("\x1b[%d;4H \x1b[15C ",line);
-		if ( (keys & KEY_UP) && line == 7 ) line = 6;
-		if ( (keys & KEY_DOWN) && line == 6 ) line = 7;
+		if ( (keys & KEY_UP) && line == 11 ) line = 10;
+		if ( (keys & KEY_DOWN) && line == 10 ) line = 11;
 		if ( keys & KEY_A ) break;
 	}
 	
-	if (line == 7 )
+	if (line == 11 )
 	  netgame = true;
 	else
 	  netgame = false;

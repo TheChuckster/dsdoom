@@ -10,7 +10,7 @@ include $(DEVKITARM)/ds_rules
 export TARGET		:=	dsdoom
 export TOPDIR		:=	$(CURDIR)
 
-export DSDOOM_VERSION	:=	1.1.2SVN
+export DSDOOM_VERSION	:=	1.1.2
 
 
 .PHONY: $(TARGET).arm7 $(TARGET).arm9
@@ -38,7 +38,7 @@ $(TARGET).gba.nds	: $(TARGET).nds
 # standard nds target
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9
-	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -o banner.bmp -b icon.bmp "DS DOOM;prBoom DS Port v$(DSDOOM_VERSION)"
+	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -b icon.bmp "DS DOOM;prBoom DS Port v$(DSDOOM_VERSION)"
 
 #---------------------------------------------------------------------------------
 $(TARGET).arm7	: arm7/$(TARGET).elf
