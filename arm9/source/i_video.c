@@ -370,7 +370,6 @@ void I_StartTic (void)
 	
 	if (keys & KEY_B)
 	{
-		B_ZOOMING = true; // remember this
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = ' ';
@@ -422,40 +421,18 @@ void I_StartTic (void)
 	
 	if (keys & KEY_R)
 	{
-		// Jefklak 19/11/06 - also send a zoom event
-		if(B_ZOOMING)
-		{
-			event_t zoom;
-			zoom.type = ev_keydown;
-			zoom.data1 = '-'; // see m_misc.c defaults
-			D_PostEvent(&zoom);
-		}
-		else
-		{
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = '.';
 		D_PostEvent(&event);
 	}
-	}
 	
 	if (keys & KEY_L)
 	{
-		// Jefklak 19/11/06 - also send a zoom event
-		if(B_ZOOMING)
-		{
-			event_t zoom;
-			zoom.type = ev_keydown;
-			zoom.data1 = '='; // see m_misc.c defaults
-			D_PostEvent(&zoom);
-		}
-		else
-		{
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = ',';
 		D_PostEvent(&event);
-	}
 	}
 	
 	keys = keysUp();
@@ -520,7 +497,6 @@ void I_StartTic (void)
 	
 	if (keys & KEY_B)
 	{
-		B_ZOOMING = false; // stop zooming
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = ' ';
