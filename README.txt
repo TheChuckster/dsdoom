@@ -1,8 +1,8 @@
-dsdoom 1.1.0
+dsdoom 1.1.2
 ============
 
 dsdoom is a port of PrBoom to the Nintendo DS.
-http://www.jefklak.com/Guides/Doom-DS
+http://www.dsdoom.com
 
 PrBoom is a version of the classic 3D shoot'em'up game Doom, originally
 written by id Software.
@@ -17,8 +17,20 @@ file COPYING included in this distribution for details.
 
 Version changes
 ---------------
+1.1.2
+	> Rebuilt with latest libnds, dswifi and libfat
+	> fixed warnings
+	> zero terminate user string
+	> remove dead code
+	> move version info to makefile
+	> remove banner to allow booting on Supercard
+ 
+1.1.1
+	> replaced old gba_nds_fat code with libfat
+	> rebuilt with latest toolchain & support libraries
 
 1.1.0
+	> Add Wouter Groeneveld's updates
 	> Enabled automap mode on the lower DS Screen! stats are displayed 
 	  on the lower screen too. Option can be set in config file.
 		- Automap set to autofollow
@@ -72,7 +84,7 @@ version of doom on The Dos Games Archive. You won't be able to play most
 add-ons.
 
 http://www.dosgamesarchive.com/download/game/7
-Mirror: http://www.jefklak.com/Files/Doom
+Now included in this archive
 
 Installation
 ------------
