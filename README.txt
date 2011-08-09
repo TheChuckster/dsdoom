@@ -1,4 +1,4 @@
-dsdoom 1.1.2
+dsdoom 1.2.0
 ============
 
 dsdoom is a port of PrBoom to the Nintendo DS.
@@ -17,6 +17,10 @@ file COPYING included in this distribution for details.
 
 Version changes
 ---------------
+1.2.0
+	> update code for latest libnds, dswifi and libfat
+	> now reads files from nds directory with argv supporting cards.
+
 1.1.2
 	> Rebuilt with latest libnds, dswifi and libfat
 	> fixed warnings
@@ -89,10 +93,11 @@ Now included in this archive
 Installation
 ------------
 
-Simply extract the zip to the root of your favourite media device, dsdoom
-has been tested to work on M3:SD and GBAMP so far. Start dsdoom.nds in the
-manner used by your media device. Select Standard Game from the initial
-menu to start a single player game.
+Simply extract the zip to your favourite media device, dsdoom will now
+read files from the directory where you put dsdoom.nds when the launcher
+supports the argv protocol. For a launcher that supports argv and works on
+many devices see http://devkitpro.org/hbmenu. Select Standard Game from the
+initial menu to start a single player game.
 
 
 Controls are simple.
