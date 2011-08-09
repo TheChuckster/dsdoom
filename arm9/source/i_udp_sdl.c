@@ -190,6 +190,7 @@ UDP_SOCKET I_Socket(u16 port)
   else {
     UDP_SOCKET sock;
     port = IPPORT_RESERVED;
+	
     while( (sock = SDLNet_UDP_Open(port)) == NULL )
       port++;
     return sock;

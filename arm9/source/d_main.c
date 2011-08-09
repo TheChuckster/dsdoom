@@ -414,6 +414,7 @@ static void D_DoomLoop(void)
         TryRunTics (); // will run at least one tic
 		}
 
+
 	  if(DS_LCDON || netgame)
 	  {
       // killough 3/16/98: change consoleplayer to displayplayer
@@ -654,7 +655,9 @@ static void CheckIWAD(const char *iwadname,GameMode_t *gmode,boolean *hassec)
     // Identify IWAD correctly
 	fp = fopen(iwadname, "r");
 	
-	if (fp == (FILE *)-1) I_Error("CheckIWAD: Can't open IWAD %s", iwadname);
+	if (fp == NULL){ 
+		I_Error("CheckIWAD: Can't open IWAD %s", iwadname);
+	}
 
       wadinfo_t header;
 
@@ -863,7 +866,6 @@ void IdentifyVersion (void)
   }
 
   // locate the IWAD and determine game mode from it
-
   iwad = FindIWADFile();
 
 #if (defined(GL_DOOM) && defined(_DEBUG))
@@ -1229,6 +1231,7 @@ void D_DoomMainSetup(void)
 
   DoLooseFiles();  // Ty 08/29/98 - handle "loose" files on command line
   IdentifyVersion();
+
 
   // e6y: DEH files preloaded in wrong order
   // http://sourceforge.net/tracker/index.php?func=detail&aid=1418158&group_id=148658&atid=772943

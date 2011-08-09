@@ -64,13 +64,12 @@
 #include "st_lib.h"
 #include "d_deh.h"					// Jefklak 20/11/06 - allow grabbing of s_STRINGCAP vars
 #include "version.h"				// ^ DS DOOM version number
-#include "../../ndsx_ledblink.h"	// ^ LED manipulator
-#include "../../ndsx_brightness.h"	// ^ Brightness manipulator
-
 
 #include <fat.h>
 #include <dswifi9.h>
 #define		VCOUNT		(*((u16 volatile *) 0x04000006))
+
+PrintConsole bottomScreen;
 
 #ifdef WIFI_DEBUG
 void debug_print_stub(char *string)
@@ -81,18 +80,6 @@ void debug_print_stub(char *string)
 
 // sgIP_dbgprint only needed in debug version
 void sgIP_dbgprint(char * txt, ...) {	}
-
-// wifi timer function, to update internals of sgIP
-void Timer_50ms(void)
-{
-	Wifi_Timer(50);
-}
-
-// notification function to send fifo message to arm7
-void arm9_synctoarm7()
-{ // send fifo message
-	REG_IPC_FIFO_TX=0x87654321;
-}
 
 // interrupt handler to receive fifo messages from arm7
 void arm9_fifo()
@@ -389,7 +376,7 @@ void I_Quit (void)
 
   // Jefklak 19/11/06 - power the ting off, please.
   free(DS_USERNAME);
-  powerOFF(POWER_ALL);
+  powerOff(POWER_ALL);
 }
 
 #ifdef SECURE_UID
@@ -403,50 +390,14 @@ void StartWifi()
 #endif
 
 #ifdef WIFI
-	{ // send fifo message to initialize the arm7 wifi
-		REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR; // enable & clear FIFO
 		
-		u32 Wifi_pass= Wifi_Init(WIFIINIT_OPTION_USELED);
-		REG_IPC_FIFO_TX=0x12345678;
-		REG_IPC_FIFO_TX=Wifi_pass;
+	iprintf("Connecting via WFC data...\n");
    	
-		*((volatile u16 *)0x0400010E) = 0; // disable timer3
-		
-//		irqInit(); 
-		irqSet(IRQ_TIMER3, Timer_50ms); // setup timer IRQ
-		irqEnable(IRQ_TIMER3);
-		irqSet(IRQ_FIFO_NOT_EMPTY, arm9_fifo); // setup fifo IRQ
-		irqEnable(IRQ_FIFO_NOT_EMPTY);
-   	
-		REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_RECV_IRQ; // enable FIFO IRQ
-   	
-		Wifi_SetSyncHandler(arm9_synctoarm7); // tell wifi lib to use our handler to notify arm7
-
-		// set timer3
-		*((volatile u16 *)0x0400010C) = -6553; // 6553.1 * 256 cycles = ~50ms;
-		*((volatile u16 *)0x0400010E) = 0x00C2; // enable, irq, 1/256 clock
-		
-		while(Wifi_CheckInit()==0) { // wait for arm7 to be initted successfully
-			while(VCOUNT>192); // wait for vblank
-			while(VCOUNT<192);
-		}
-	} // wifi init complete - wifi lib can now be used!
+	if(!Wifi_InitDefault(WFC_CONNECT)) {
+		iprintf("Failed to connect!");
+	} else {
 	
-	iprintf("Connecting via WFC data\n");
-	{ // simple WFC connect:
-		int i;
-		Wifi_AutoConnect(); // request connect
-		while(1) {
-			i=Wifi_AssocStatus(); // check status
-			if(i==ASSOCSTATUS_ASSOCIATED) {
-				iprintf("Connected successfully!\n");
-				break;
-			}
-			if(i==ASSOCSTATUS_CANNOTCONNECT) {
-				iprintf("Could not connect!\n");
-				break;
-			}
-		}
+		iprintf("Connected\n\n");
 	} // if connected, you can now use the berkley sockets interface to connect to the internet!
 	
 #ifdef WIFI_DEBUG
@@ -470,11 +421,11 @@ void switchConsole()
 		videoSetModeSub(MODE_0_2D|DISPLAY_BG0_ACTIVE);
 		vramSetBankC(VRAM_C_SUB_BG);
 
-		SUB_BG0_CR = BG_MAP_BASE(31);
+		REG_BG0CNT_SUB = BG_MAP_BASE(31);
 		BG_PALETTE_SUB[255] = RGB15(31,31,31);
 
-		consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
-		//consoleClear();
+		consoleInit(&bottomScreen,3, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
+		
 		FG = 0;
 
 		lprintf(LO_INFO, "%s (FG buffer is %i)\n", s_CONSOLESWAPON, FG);
@@ -486,13 +437,13 @@ void switchConsole()
 		videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
 		vramSetBankC(VRAM_C_SUB_BG);
 
-		SUB_BG3_CR = BG_BMP8_512x512;
-		SUB_BG3_XDX = (320 * 256)/256; //1 << 8;
-		SUB_BG3_XDY = 0; // BG SCALING X
-		SUB_BG3_YDX = 0; // BG SCALING Y
-		SUB_BG3_YDY = (200*256)/192; // << 8;
-		SUB_BG3_CX = 0;
-		SUB_BG3_CY = 0;
+		REG_BG3CNT_SUB = BG_BMP8_512x512;
+		REG_BG3PA_SUB = (320 * 256)/256; //1 << 8;
+		REG_BG3PB_SUB = 0; // BG SCALING X
+		REG_BG3PC_SUB = 0; // BG SCALING Y
+		REG_BG3PD_SUB = (200*256)/192; // << 8;
+		REG_BG3X_SUB = 0;
+		REG_BG3Y_SUB = 0;
 		memset(BG_GFX_SUB, 0, 512 * 512 * 2);
 
 		/**
@@ -510,26 +461,13 @@ void switchConsole()
 		M_SizeDisplay(FG);
 }
 
-// Jefklak 21/11/06 - brightness wrapper for ndsx_brightness.h
-// Only apply brightness register changes if DSLite.
-void DStoggleBrightness()
-{
-	if(!NDSX_IsLite())	// SetBrigtness_Next() doesn't work anyway...
-		return;
-
-	NDSX_SetBrightness_Next();
-	lprintf(LO_INFO, "%s\n", s_DSBRIGHTNESS);
-	if(gamestate == GS_LEVEL)
-		players[consoleplayer].message = s_DSBRIGHTNESS;
-}
-
 // Jefklak 21/11/06 - Finally works! retrieve profile username
 // Had to be wrapped to ARM7... How weird.
 char *DS_USERNAME = NULL;
 void DSgetUserName()
 {
 	int i;
-	int nameLen = NDSX_GetPersonalNameLen();
+	int nameLen = PersonalData->nameLen;
 	DS_USERNAME = malloc(nameLen + 1);
 
 	// safety fail
@@ -542,7 +480,7 @@ void DSgetUserName()
 	for(i=0; i < nameLen; i++)
 	{
 		// pretend to get ascii-bits from utf-16 name
-		DS_USERNAME[i] = (char)(NDSX_GetPersonalName() & 255);
+		DS_USERNAME[i] = (char)PersonalData->name[i] & 255;
 	}
 	// zero terminate the string
 	DS_USERNAME[i] = 0;
@@ -554,13 +492,8 @@ int main(int argc, char **argv)
 	myargc = argc;
 	myargv = argv;
 
-	powerON(POWER_ALL);
-	REG_EXMEMCNT=0xe800;
-	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
-	
-	irqInit();	// Enable our quintessential vblank interrupt
-	irqSet(IRQ_VBLANK, NULL);
-	irqEnable(IRQ_VBLANK);
+	powerOn(POWER_ALL);
+	soundEnable();
 	
 	TIMER0_DATA=0;	// Set up the timer
 	TIMER1_DATA=0;
@@ -573,16 +506,16 @@ int main(int argc, char **argv)
 	vramSetBankA(VRAM_A_MAIN_BG_0x06000000);		// same as VRAM_A_MAIN_BG
 	vramSetBankB(VRAM_B_MAIN_BG_0x06020000);		// use second bank for main screen - 256 KiB
 
-	BG3_CR = BG_BMP8_512x512;					// BG3 Control register, 8 bits
-    BG3_XDX = (320 * 256)/256; //1 << 8;
-    BG3_XDY = 0; // BG SCALING X
-    BG3_YDX = 0; // BG SCALING Y
-    BG3_YDY = (200*256)/192; // << 8;
-    BG3_CX = 0;
-    BG3_CY = 0;
+	REG_BG3CNT = BG_BMP8_512x512;					// BG3 Control register, 8 bits
+    REG_BG3PA = (320 * 256)/256; //1 << 8;
+    REG_BG3PB = 0; // BG SCALING X
+    REG_BG3PC = 0; // BG SCALING Y
+    REG_BG3PD = (200*256)/192; // << 8;
+    REG_BG3X = 0;
+    REG_BG3Y = 0;
 
 	// Disable LED blinking if the passcard does not do it for us (DSX).
-	NDSX_SetLedBlink_Off();
+	ledBlink(0);
 
 	// clear upper screen (black) instead of junk
 	switchConsole();

@@ -404,6 +404,7 @@ void W_Init(void)
 
   numlumps = 0; lumpinfo = NULL;
 
+
   { // CPhipps - new wadfiles array used 
     // open all the files, load headers, and count lumps
     int i;

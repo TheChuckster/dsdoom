@@ -266,11 +266,10 @@ void I_StartTic (void)
 	{
 		if(!(keysHeld() & KEY_LID))
 		{		
-			powerON(POWER_ALL_2D); // turn on everything
-			NDSX_SetLedBlink_Off();
+			powerOn(POWER_ALL_2D); // turn on everything
+			ledBlink(0);
 			lcdMainOnTop();
 			S_StartSound(NULL,sfx_swtchn);
-	  
 			DS_LCDON = true;
 			return;
 		}
@@ -284,14 +283,13 @@ void I_StartTic (void)
 			event.data1 = KEYD_ESCAPE;
 			D_PostEvent(&event);
 
-			powerOFF(POWER_ALL_2D); // turn off everything
-			NDSX_SetLedBlink_On();
-			NDSX_SetLedBlink_Slow();
-
+			powerOff(POWER_ALL_2D); // turn off everything
+			ledBlink(0x10);
 			DS_LCDON = false;
 			return;
 		}
 	}
+
 
 	if (keys & KEY_UP || ((keysHeld() & KEY_TOUCH) && touch.py < 80))
 	{
@@ -349,8 +347,6 @@ void I_StartTic (void)
 			gen_console_enable = (gen_console_enable? 0 : 1);
 			switchConsole();
 		}
-		else if(B_ZOOMING)	// switch DS brigtness mode (if DSLite)
-			DStoggleBrightness();
 
 		FUNC_PRESS = true;
 		// END

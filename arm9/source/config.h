@@ -3,7 +3,7 @@
 
 #define WIFI
 
-#define PATH_MAX 1024
+//#define PATH_MAX 1024
 
 /* Uncomment this to exhaustively run memory checks while the game is running
    (this is EXTREMELY slow). */

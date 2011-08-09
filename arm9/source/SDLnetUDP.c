@@ -148,7 +148,7 @@ extern UDPsocket SDLNet_UDP_Open(u16 port)
 	/* Allocate a UDP socket structure */
 	sock = (UDPsocket)malloc(sizeof(*sock));
 	if ( sock == NULL ) {
-		iprintf("SDL_NET: Out of memory");
+		iprintf("SDL_NET: Out of memory\n");
 		goto error_return;
 	}
 	memset(sock, 0, sizeof(*sock));
@@ -158,7 +158,7 @@ extern UDPsocket SDLNet_UDP_Open(u16 port)
 
 	if ( sock->channel == INVALID_SOCKET ) 
 	{
-		iprintf("SDL_NET: Couldn't create socket");
+		iprintf("SDL_NET: Couldn't create socket\n");
 		goto error_return;
 	}
 
@@ -175,7 +175,7 @@ extern UDPsocket SDLNet_UDP_Open(u16 port)
 		/* Bind the socket for listening */
 		if ( bind(sock->channel, (struct sockaddr *)&sock_addr,
 				sizeof(sock_addr)) == SOCKET_ERROR ) {
-			iprintf("SDL_NET: Couldn't bind to local port");
+			iprintf("SDL_NET: Couldn't bind to local port\n");
 			goto error_return;
 		}
 		/* Fill in the channel host address */

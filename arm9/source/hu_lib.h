@@ -41,6 +41,7 @@
  * different from other modules. */
 // Jefklak 19/11/06 - Draw Text info stuff (pickups, map coords ed) on lower screen
 // therefore define FG as buffer #1 instead of 0
+#undef BG
 #define BG      1
 extern int FG;
 //#define FG      1 - has been replaced by static

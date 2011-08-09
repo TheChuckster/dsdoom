@@ -61,7 +61,6 @@ void I_ReadScreen (byte* scr);
 void I_StartTic (void);
 
 // Jefklak 19/11/06 - keep a boolean for zooming purposes
-bool B_ZOOMING;
 bool FUNC_PRESS;
 // END
 

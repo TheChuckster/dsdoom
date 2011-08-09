@@ -181,16 +181,9 @@ int addsfx(int sfxid, int channel, int vol, int sep)
 		}
 		DC_FlushRange((void *)channelinfo[channel].data, len);
 	}
-	TransferSoundData audiotransfer = {
-		channelinfo[channel].data, // Sample address
-		len,	// Sample length
-		channelinfo[channel].samplerate,  // Sample rate
-		vol,	// Volume
-		sep,	// Panning
-		1	// Format
-	};
 	
-	playSound(&audiotransfer);
+	soundPlaySample(channelinfo[channel].data, SoundFormat_8Bit, len, channelinfo[channel].samplerate, vol, sep, false, 0);
+	
     }
   channelinfo[channel].stepremainder = 0;
     // Should be gametic, I presume.

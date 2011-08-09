@@ -10,10 +10,10 @@ include $(DEVKITARM)/ds_rules
 export TARGET		:=	dsdoom
 export TOPDIR		:=	$(CURDIR)
 
-export DSDOOM_VERSION	:=	1.1.2
+export DSDOOM_VERSION	:=	1.2.0
 
 
-.PHONY: $(TARGET).arm7 $(TARGET).arm9
+.PHONY: arm7/$(TARGET).elf arm9/$(TARGET).elf
 
 #---------------------------------------------------------------------------------
 #all: $(TARGET).fcsr.nds
@@ -21,28 +21,18 @@ export DSDOOM_VERSION	:=	1.1.2
 #---------------------------------------------------------------------------------
 # targets for building FCSR images
 #---------------------------------------------------------------------------------
-#$(TARGET).fcsr.nds : $(TARGET).gba.nds
+#$(TARGET).fcsr.nds : $(TARGET).nds
 #	padbin 512 $<
 #	cat -B $< doom.fcsr > $@
 #	dlditool.exe fcsr.dldi $@
 
-all : $(TARGET).gba.nds
-
-#---------------------------------------------------------------------------------
-# nds target with gba header for devices which need rom startup code
-#---------------------------------------------------------------------------------
-$(TARGET).gba.nds	: $(TARGET).nds
-	dsbuild $< -o $@
+all : $(TARGET).nds
 
 #---------------------------------------------------------------------------------
 # standard nds target
 #---------------------------------------------------------------------------------
-$(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9
-	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -b icon.bmp "DS DOOM;prBoom DS Port v$(DSDOOM_VERSION)"
-
-#---------------------------------------------------------------------------------
-$(TARGET).arm7	: arm7/$(TARGET).elf
-$(TARGET).arm9	: arm9/$(TARGET).elf
+$(TARGET).nds	:	arm7/$(TARGET).elf arm9/$(TARGET).elf
+	ndstool	-c $(TARGET).nds -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf -b icon.bmp "DS DOOM;prBoom DS Port v$(DSDOOM_VERSION)"
 
 #---------------------------------------------------------------------------------
 arm7/$(TARGET).elf:
@@ -56,4 +46,4 @@ arm9/$(TARGET).elf:
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).ds.gba $(TARGET).nds $(TARGET).arm7 $(TARGET).arm9
+	rm -f $(TARGET).nds

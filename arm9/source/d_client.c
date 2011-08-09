@@ -386,6 +386,7 @@ void NetUpdate(void)
 		Z_Free(packet);
 	}
 	
+	
 	{ // Build new ticcmds
 	
 		int newtics = I_GetTime() - lastmadetic;
@@ -581,6 +582,7 @@ void TryRunTics (void)
 #else
     D_BuildNewTiccmds();
 #endif
+
     runtics = (server ? remotetic : maketic) - gametic;
 	
     if (!runtics)
