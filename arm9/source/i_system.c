@@ -195,7 +195,8 @@ int I_Filelength(FILE *handle)
 
 // Return the path where the executable lies -- Lee Killough
 // proff_fs 2002-07-04 - moved to i_system
-#ifdef _WIN32
+//#ifdef _WIN32
+#ifndef MACOSX
 char *I_DoomExeDir(void)
 {
   static const char current_dir_dummy[] = {"."}; // proff - rem extra slash 8/21/03
@@ -212,8 +213,8 @@ char *I_DoomExeDir(void)
       if (strlen(base)<2)
       {
         free(base);
-        base = malloc(1024);
-        if (!getcwd(base,1024))
+        base = malloc(PATH_MAX);
+        if (!getcwd(base,PATH_MAX))
           strcpy(base, current_dir_dummy);
       }
     }
@@ -227,11 +228,11 @@ static const char prboom_dir[] = {"/"}; // Mead rem extra slash 8/21/03
 #ifdef MACOSX
 /* Defined elsewhere */
 #else
-char *I_DoomExeDir(void)
+/*char *I_DoomExeDir(void)
 {
   return "/";
 }
-#endif
+*/#endif
 #endif
 
 /*
@@ -265,19 +266,6 @@ static boolean HasTrailingSlash(const char* dn)
 #ifdef MACOSX
 /* Defined elsewhere */
 #else
-int num=0;
-
-char* I_FindFile(const char* wfname, const char* ext)
-{
-	num++;
-	
-	if (num == 1)
-		return "/doom.wad";
-	else
-		return "/prboom.wad";
-}
-
-/*
 char* I_FindFile(const char* wfname, const char* ext)
 {
   int   i;
@@ -333,7 +321,6 @@ char* I_FindFile(const char* wfname, const char* ext)
   }
   return NULL;
 }
-*/
 
 #endif
 
