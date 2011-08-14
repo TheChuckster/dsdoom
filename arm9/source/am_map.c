@@ -666,6 +666,16 @@ boolean AM_Responder
   return rc;
 }
 
+void AM_ZoomIn() {
+      mtof_zoommul = M_ZOOMIN;
+      ftom_zoommul = M_ZOOMOUT;
+}
+
+void AM_ZoomOut() {
+      mtof_zoommul = M_ZOOMOUT;
+      ftom_zoommul = M_ZOOMIN;
+}
+
 //
 // AM_rotate()
 //

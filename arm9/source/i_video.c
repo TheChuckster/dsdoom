@@ -251,47 +251,36 @@ char weapons[9] = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 int weapon_index = 0;
 bool weapon_shotgun_cycled = false;
 
+void AM_ZoomOut();
+void AM_ZoomIn();
+
 /**
- * Jefklak 19/11/06 - Add zooming keys (B+L/R)
  * 23/11/06 - Powersave mode added (thanks to Mr. Snowflake)
  * in DOOM II, regular shotgun added to weapon index pool
  **/
 void I_StartTic (void)
 {
+
+	touchPosition touch;
+	
 	scanKeys();	// Do DS input housekeeping
 	u16 keys = keysDown();
-	touchPosition touch = touchReadXY();
+	u16 held = keysHeld();
+
+	if (held & KEY_TOUCH) {
+		touchRead(&touch);
+	}
 	
-	if(!DS_LCDON)
-	{
-		if(!(keysHeld() & KEY_LID))
-		{		
-			powerOn(POWER_ALL_2D); // turn on everything
-			ledBlink(0);
-			lcdMainOnTop();
-			S_StartSound(NULL,sfx_swtchn);
-			DS_LCDON = true;
-			return;
+	if (held & KEY_B) {
+		if (held & KEY_L) {
+			AM_ZoomIn();
 		}
-	}
-	else
-	{
-		if(keysHeld() & KEY_LID)
-		{
-			event_t event;
-			event.type = ev_keydown;
-			event.data1 = KEYD_ESCAPE;
-			D_PostEvent(&event);
-
-			powerOff(POWER_ALL_2D); // turn off everything
-			ledBlink(0x10);
-			DS_LCDON = false;
-			return;
+		if (held & KEY_R) {
+			AM_ZoomOut();
 		}
 	}
 
-
-	if (keys & KEY_UP || ((keysHeld() & KEY_TOUCH) && touch.py < 80))
+	if (keys & KEY_UP || ((held & KEY_TOUCH) && touch.py < 80))
 	{
 		event_t event;
 		event.type = ev_keydown;
@@ -307,7 +296,7 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 	
-	if (keys & KEY_DOWN || ((keysHeld() & KEY_TOUCH) && touch.py > 120))
+	if (keys & KEY_DOWN || ((held & KEY_TOUCH) && touch.py > 120))
 	{
 		event_t event;
 		event.type = ev_keydown;
@@ -339,15 +328,13 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 	
-	if (keys & KEY_SELECT)
-	{
+	if (keys & KEY_SELECT) {
 		// Jefklak 21/11/06 - allow select+start = switchConsole
 		if(FUNC_PRESS)
 		{
 			gen_console_enable = (gen_console_enable? 0 : 1);
 			switchConsole();
 		}
-
 		FUNC_PRESS = true;
 		// END
 		event_t event;
@@ -415,25 +402,28 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 	
-	if (keys & KEY_R)
-	{
-		event_t event;
-		event.type = ev_keydown;
-		event.data1 = '.';
-		D_PostEvent(&event);
+	if (keys & KEY_R) {
+		if (!(held & KEY_B)) {
+			event_t event;
+			event.type = ev_keydown;
+			event.data1 = '.';
+			D_PostEvent(&event);
+		}
 	}
 	
 	if (keys & KEY_L)
 	{
-		event_t event;
-		event.type = ev_keydown;
-		event.data1 = ',';
-		D_PostEvent(&event);
+		if (!(held & KEY_B)) {
+			event_t event;
+			event.type = ev_keydown;
+			event.data1 = ',';
+			D_PostEvent(&event);
+		}
 	}
 	
 	keys = keysUp();
 	
-	if (keys & KEY_UP || (keys & KEY_TOUCH) || ((keysHeld() & KEY_TOUCH) && touch.py >= 80))
+	if (keys & KEY_UP || (keys & KEY_TOUCH) || ((held & KEY_TOUCH) && touch.py >= 80))
 	{
 		event_t event;
 		event.type = ev_keyup;
@@ -449,7 +439,7 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 	
-	if (keys & KEY_DOWN || (keys & KEY_TOUCH) || ((keysHeld() & KEY_TOUCH) && touch.py <= 120))
+	if (keys & KEY_DOWN || (keys & KEY_TOUCH) || ((held & KEY_TOUCH) && touch.py <= 120))
 	{
 		event_t event;
 		event.type = ev_keyup;
@@ -544,6 +534,7 @@ void I_StartTic (void)
 		event.data3 = (0) << 5;
 		D_PostEvent(&event);
 	}
+
 }
 
 //
