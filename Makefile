@@ -10,7 +10,7 @@ include $(DEVKITARM)/ds_rules
 export TARGET		:=	dsdoom
 export TOPDIR		:=	$(CURDIR)
 
-export DSDOOM_VERSION	:=	1.2.0
+export DSDOOM_VERSION	:=	1.2.1
 
 
 .PHONY: arm7/$(TARGET).elf arm9/$(TARGET).elf
