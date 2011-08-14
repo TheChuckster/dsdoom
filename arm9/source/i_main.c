@@ -67,7 +67,6 @@
 
 #include <fat.h>
 #include <dswifi9.h>
-#define		VCOUNT		(*((u16 volatile *) 0x04000006))
 
 PrintConsole bottomScreen;
 
@@ -360,6 +359,8 @@ void I_SafeExit(int rc)
 }
 
 // Jefklak 19/11/06 - add ShutdownGraphics() call (why wasn't this used before?)
+// Because if you shut down the graphics you can't see the error messages you moron!
+
 // also turn DS power off.
 void I_Quit (void)
 {
@@ -367,16 +368,12 @@ void I_Quit (void)
     has_exited=1;   /* Prevent infinitely recursive exits -- killough */
 
   if (has_exited == 1) {
-	I_ShutdownGraphics();
     I_EndDoom();
     if (demorecording)
       G_CheckDemoStatus();
     M_SaveDefaults ();
   }
 
-  // Jefklak 19/11/06 - power the ting off, please.
-  free(DS_USERNAME);
-  powerOff(POWER_ALL);
 }
 
 #ifdef SECURE_UID
@@ -486,6 +483,18 @@ void DSgetUserName()
 	DS_USERNAME[i] = 0;
 }
 
+void systemErrorExit(int rc) {
+   printf("exit with code %d\n",rc);
+   printf("Press A to Quit\n");
+
+   while(1) {
+      swiWaitForVBlank();
+      scanKeys();
+      if (keysDown() & KEY_A) break;
+   }
+   
+}
+
 //int main(int argc, const char * const * argv)
 int main(int argc, char **argv)
 {
@@ -494,6 +503,8 @@ int main(int argc, char **argv)
 
 	powerOn(POWER_ALL);
 	soundEnable();
+	defaultExceptionHandler();
+
 	
 	TIMER0_DATA=0;	// Set up the timer
 	TIMER1_DATA=0;
@@ -526,6 +537,7 @@ int main(int argc, char **argv)
 	consoleClear();
 	iprintf("Welcome %s!\nThis is DS DOOM Build %s\n\n", DS_USERNAME, VER_DSDOOM);
 	iprintf("prBoom ported by\nTheChuckster & WinterMute\n");
+	iprintf("updated by happy_bunny for latest tools/libs.\n");
 	iprintf("some additions by JefKlak\n");
 	if (!fatInitDefault())
 	{
@@ -578,7 +590,8 @@ int main(int argc, char **argv)
 
   Z_Init();                  /* 1/18/98 killough: start up memory stuff first */
 
-  atexit(I_Quit);/*
+  atexit(I_Quit);
+/*
 #ifndef _DEBUG
   signal(SIGSEGV, I_SignalHandler);
 #ifdef SIGPIPE
