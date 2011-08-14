@@ -571,7 +571,7 @@ int main(int argc, char **argv)
   PrintVer();
 
   /* cph - Z_Close must be done after I_Quit, so we register it first. */
-  atexit(Z_Close);
+  //atexit(Z_Close);
   /*
      killough 1/98:
 
