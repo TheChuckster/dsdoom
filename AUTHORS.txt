@@ -145,6 +145,7 @@ Mac OS X porting
 Chuck Moyes <TheChuckster@gmail.com>
 Dave Murphy <davem@devkitpro.org>
 Wouter Groeneveld <jefklak@gmail.com>
+happy_bunny
 Nintendo DS porting
 
 Everyone who contributed indirectly to MBF and Boom and Doom; see the
