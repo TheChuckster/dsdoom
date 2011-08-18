@@ -17,6 +17,10 @@ file COPYING included in this distribution for details.
 
 Version changes
 ---------------
+1.2.1
+	> restore automap zoom controls
+	> prevent freeze on changing SFX volume
+
 1.2.0
 	> update code for latest libnds, dswifi and libfat
 	> now reads files from nds directory with argv supporting cards.
@@ -75,7 +79,7 @@ Game data - WADs
 (This section is aimed at people not familiar with Doom and the
 data files it uses.)
 
-dsdoom is a game engine - it provides a program to play Doom levels, but
+DS Doom is a game engine - it provides a program to play Doom levels, but
 it doesn't include any levels itself. More importantly, you need all the
 sounds, sprites, and other graphics that make up the Doom environment.
 So to play dsdoom, you need one of the main Doom date files from id
@@ -93,11 +97,59 @@ Now included in this archive
 Installation
 ------------
 
-Simply extract the zip to your favourite media device, dsdoom will now
-read files from the directory where you put dsdoom.nds when the launcher
-supports the argv protocol. For a launcher that supports argv and works on
-many devices see http://devkitpro.org/hbmenu. Select Standard Game from the
-initial menu to start a single player game.
+Simply extract the zip to your favourite media device, dsdoom will now read
+files from the directory where you put dsdoom.nds when the launcher supports
+the argv protocol. For a launcher that supports argv and works on many devices
+see http://devkitpro.org/hbmenu. Select Standard Game from the initial menu to
+start a single player game.
+
+Using the latest hbmenu you can use .argv files to pass arguments to DS Doom
+which gives you the ability to use any PrBoom compatible PWADs and DEHs.
+DS Doom will accept most arguments you can pass to PrBoom but we offer no
+guarantees that all of them will work as expected. Here are a few of the
+PrBoom arguments you can pass.
+
+WAD Options
+       -iwad iwadname
+              Specifies the location of the IWAD file, typically  doom.wad  or
+              doom2.wad (or doom2f.wad). This tells prboom where the main .wad
+              file that came with the version of Doom that you own is.
+
+       -file wad1 ...
+              Specifies a list of PWAD files to load in addition to  the  IWAD
+              file. PWAD files modify the existing Doom game, by adding levels
+              or new sounds or graphics. PWAD files are widely  available  for
+              download; try ftp.cdrom.com/pub/idgames for starters.
+
+       -deh deh_file
+              Tells PrBoom to load the dehacked patch deh_file.
+
+Game Options
+       -loadgame {0,1,2,3,4,5,6,7}
+              Instructs PrBoom to load the specified saved game immediately.
+
+       -warp { map | epis level }
+              Tells  PrBoom  to  begin  a  new game immediately. For Doom 1 or
+              Ultimate Doom, you must specify the episode and level number  to
+              begin  at  (epis is 1 for Knee-Deep in the Dead, 2 for Shores of
+              Hell, 3 for Inferno, 4 for Ultimate Doom; level is between 1 and
+              9). For Doom ][ or Final Doom, you must specify the map to begin
+              at, which is between 1 and 2 (0 for German Doom ][).
+
+       -skill n
+              Tells PrBoom to begin the game at skill level n (1 for ITYTD,  2
+              for  Not  Too Rough, 3 for Hurt Me Plenty, 4 for Ultraviolent, 5
+              for Nightmare).
+
+       -respawn
+              Tells PrBoom that monsters that die should respawn (come back to
+              life) after a while. Not for the inexperienced.
+
+       -fast  Tells  PrBoom  to  make all the monsters move  react faster. Not
+              for the inexperienced.
+
+       -nomonsters
+              Tells PrBoom to include no monsters in the game.
 
 
 Controls are simple.
@@ -117,7 +169,7 @@ Press Start and Select at once to alter console mode.
 Configuration
 -------------
 
-dsdoom automatically creates a PRDOOM.CFG configuration file, using default 
+DS Doom automatically creates a PRDOOM.CFG configuration file, using default 
 values. Options set in the setup screen will be saved automatically. 
 A couple of DS specific variables can be manually edited:
 
