@@ -57,6 +57,10 @@
 #include <dpmi.h>
 #endif
 
+#ifdef __NDS__
+#include <nds/system.h>
+#endif
+
 // Tunables
 
 // Alignment of zone memory (benefit may be negated by HEADER_SIZE, CHUNK_SIZE)
@@ -239,8 +243,12 @@ void Z_Close(void)
 #endif
 }
 
+
 void Z_Init(void)
 {
+#ifdef __NDS__
+	memory_size = (u32)getHeapLimit() - (u32)getHeapEnd() - (256 * 1024);
+#endif	
 #if 0
   size_t size = zone_size*1000;
 
