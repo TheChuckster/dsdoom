@@ -56,6 +56,7 @@ void powerButtonCB() {
 int main() {
 //---------------------------------------------------------------------------------
 	readUserSettings();
+	ledBlink(0);
 
 	irqInit();
 	// Start the RTC tracking IRQ

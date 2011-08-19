@@ -458,8 +458,6 @@ void switchConsole()
 		M_SizeDisplay(FG);
 }
 
-// Jefklak 21/11/06 - Finally works! retrieve profile username
-// Had to be wrapped to ARM7... How weird.
 char *DS_USERNAME = NULL;
 void DSgetUserName()
 {
@@ -524,9 +522,6 @@ int main(int argc, char **argv)
     REG_BG3PD = (200*256)/192; // << 8;
     REG_BG3X = 0;
     REG_BG3Y = 0;
-
-	// Disable LED blinking if the passcard does not do it for us (DSX).
-	ledBlink(0);
 
 	// clear upper screen (black) instead of junk
 	switchConsole();
