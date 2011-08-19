@@ -541,22 +541,22 @@ int main(int argc, char **argv)
 		iprintf("fatInitDefault(): initialized.\n");
 	}
 
-	iprintf("\x1b[8;0HChoose your game type\n\n");
+	iprintf("\x1b[10;0HChoose your game type\n\n");
 	iprintf("      Standard game\n      Network game");
 	
-	int line = 10;
+	int line = 12;
 	while(1) {
 		iprintf("\x1b[%d;4H]\x1b[15C[",line);
 		swiWaitForVBlank();
 		scanKeys();
 		int keys = keysDown();
 		iprintf("\x1b[%d;4H \x1b[15C ",line);
-		if ( (keys & KEY_UP) && line == 11 ) line = 10;
-		if ( (keys & KEY_DOWN) && line == 10 ) line = 11;
+		if ( (keys & KEY_UP) && line == 13 ) line = 12;
+		if ( (keys & KEY_DOWN) && line == 12 ) line = 13;
 		if ( keys & KEY_A ) break;
 	}
 	
-	if (line == 11 )
+	if (line == 13 )
 	  netgame = true;
 	else
 	  netgame = false;
