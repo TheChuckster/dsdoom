@@ -407,6 +407,20 @@ void StartWifi()
 #endif
 }
 
+void setAutoMap() {
+	videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
+	vramSetBankC(VRAM_C_SUB_BG);
+
+	REG_BG3CNT_SUB = BG_BMP8_512x512;
+	REG_BG3PA_SUB = (320 * 256)/256; //1 << 8;
+	REG_BG3PB_SUB = 0; // BG SCALING X
+	REG_BG3PC_SUB = 0; // BG SCALING Y
+	REG_BG3PD_SUB = (200*256)/192; // << 8;
+	REG_BG3X_SUB = 0;
+	REG_BG3Y_SUB = 0;
+	dmaFillWords(0,BG_GFX_SUB,128*1024);
+}
+
 // Jefklak 19/11/06 - Switches lower DS screen back to console or vice versa.
 int gen_screen_swap = 0;
 int gen_console_enable = 1;
@@ -415,13 +429,13 @@ void switchConsole()
 	// ### LOWER SCREEN #### //
 	if(gen_console_enable)
 	{
-		videoSetModeSub(MODE_0_2D|DISPLAY_BG0_ACTIVE);
+		videoSetModeSub(MODE_0_2D|DISPLAY_BG1_ACTIVE);
 		vramSetBankC(VRAM_C_SUB_BG);
 
-		REG_BG0CNT_SUB = BG_MAP_BASE(31);
+		REG_BG1CNT_SUB = BG_MAP_BASE(31);
 		BG_PALETTE_SUB[255] = RGB15(31,31,31);
 
-		consoleInit(&bottomScreen,3, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
+		consoleInit(&bottomScreen,1, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
 		
 		FG = 0;
 
@@ -431,18 +445,7 @@ void switchConsole()
 	}
 	else
 	{
-		videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
-		vramSetBankC(VRAM_C_SUB_BG);
-
-		REG_BG3CNT_SUB = BG_BMP8_512x512;
-		REG_BG3PA_SUB = (320 * 256)/256; //1 << 8;
-		REG_BG3PB_SUB = 0; // BG SCALING X
-		REG_BG3PC_SUB = 0; // BG SCALING Y
-		REG_BG3PD_SUB = (200*256)/192; // << 8;
-		REG_BG3X_SUB = 0;
-		REG_BG3Y_SUB = 0;
-		memset(BG_GFX_SUB, 0, 512 * 512 * 2);
-
+		setAutoMap();
 		/**
 		 * adjusted in st_lib.h (static int instead of #define)
 		 * hu_lib.h includes st_lib.h and uses same FG screen[x] identifier
@@ -491,6 +494,31 @@ void systemErrorExit(int rc) {
       if (keysDown() & KEY_A) break;
    }
    
+}
+
+static int old_console;
+
+void keyboardStart() {
+	old_console = gen_console_enable;
+	gen_console_enable = 1;
+	REG_DISPCNT_SUB &= ~DISPLAY_BG3_ACTIVE;
+	dmaFillWords(0,BG_GFX_SUB,128*1024);
+	dmaCopy(BG_PALETTE_SUB,BG_MAP_RAM_SUB(28),512);
+	keyboardInit(NULL, 0, BgType_Text4bpp, BgSize_T_256x512, 29, 1, false, true);
+	BG_PALETTE_SUB[255] = RGB15(31,31,31);
+	if(old_console==0) consoleInit(&bottomScreen,1, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
+	consoleSetWindow(&bottomScreen, 0,0,32,14);
+	keyboardShow();
+}
+
+void keyboardEnd() {
+	keyboardHide();
+	gen_console_enable = old_console;
+	if (gen_console_enable == 0) {
+		setAutoMap();
+		dmaCopy(BG_MAP_RAM_SUB(28),BG_PALETTE_SUB,512);
+	} else consoleSetWindow(&bottomScreen, 0,0,32,24);
+
 }
 
 //int main(int argc, const char * const * argv)

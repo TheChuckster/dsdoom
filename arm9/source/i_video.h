@@ -60,10 +60,6 @@ void I_ReadScreen (byte* scr);
  */
 void I_StartTic (void);
 
-// Jefklak 19/11/06 - keep a boolean for zooming purposes
-bool FUNC_PRESS;
-// END
-
 /* I_StartFrame
  * Called by D_DoomLoop,
  * called before processing any tics in a frame

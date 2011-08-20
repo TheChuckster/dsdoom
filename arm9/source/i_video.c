@@ -254,13 +254,7 @@ bool weapon_shotgun_cycled = false;
 void AM_ZoomOut();
 void AM_ZoomIn();
 
-/**
- * 23/11/06 - Powersave mode added (thanks to Mr. Snowflake)
- * in DOOM II, regular shotgun added to weapon index pool
- **/
-void I_StartTic (void)
-{
-
+void DS_Controls(void) {
 	touchPosition touch;
 	
 	scanKeys();	// Do DS input housekeeping
@@ -314,14 +308,6 @@ void I_StartTic (void)
 	
 	if (keys & KEY_START)
 	{
-		// Jefklak 21/11/06 - allow select+start = switchConsole
-		if(FUNC_PRESS)
-		{
-			gen_console_enable = (gen_console_enable? 0 : 1);
-			switchConsole();
-		}
-		FUNC_PRESS = true;
-		// END
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = KEYD_ESCAPE;
@@ -329,14 +315,6 @@ void I_StartTic (void)
 	}
 	
 	if (keys & KEY_SELECT) {
-		// Jefklak 21/11/06 - allow select+start = switchConsole
-		if(FUNC_PRESS)
-		{
-			gen_console_enable = (gen_console_enable? 0 : 1);
-			switchConsole();
-		}
-		FUNC_PRESS = true;
-		// END
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = KEYD_ENTER;
@@ -347,7 +325,8 @@ void I_StartTic (void)
 	{
 		event_t event;
 		event.type = ev_keydown;
-		event.data1 = KEYD_RCTRL;
+		if (menuactive) event.data1= KEYD_ENTER;
+		else event.data1 = KEYD_RCTRL;
 		D_PostEvent(&event);
 	}
 	
@@ -355,7 +334,8 @@ void I_StartTic (void)
 	{
 		event_t event;
 		event.type = ev_keydown;
-		event.data1 = ' ';
+		if(menuactive) event.data1 = KEYD_ESCAPE;
+		else event.data1 = ' ';
 		D_PostEvent(&event);
 	}
 	
@@ -457,7 +437,6 @@ void I_StartTic (void)
 	
 	if (keys & KEY_START)
 	{
-		FUNC_PRESS = false;	// stop checking for other func key
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = KEYD_ESCAPE;
@@ -466,7 +445,6 @@ void I_StartTic (void)
 	
 	if (keys & KEY_SELECT)
 	{
-		FUNC_PRESS = false;
 		event_t event;
 		event.type = ev_keyup;
 		event.data1 = KEYD_ENTER;
@@ -535,6 +513,29 @@ void I_StartTic (void)
 		D_PostEvent(&event);
 	}
 
+}
+
+/**
+ * 23/11/06 - Powersave mode added (thanks to Mr. Snowflake)
+ * in DOOM II, regular shotgun added to weapon index pool
+ **/
+extern int saveStringEnter;
+
+void I_StartTic (void) {
+	if(saveStringEnter) {
+		int key = keyboardUpdate();
+		scanKeys();
+		u16 keys = keysDown();
+		if (keys & KEY_A) key = 10;
+
+		event_t event;
+		event.type = ev_keydown;
+		event.data1 = key;
+		D_PostEvent(&event);
+
+	} else {
+		DS_Controls();
+	}
 }
 
 //

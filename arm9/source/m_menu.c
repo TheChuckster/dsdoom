@@ -918,10 +918,11 @@ void M_ReadSaveStrings(void)
   }
 }
 
+char slotVal[SAVESTRINGSIZE];
+
 // Jefklak 21/11/06 - rip episode and map + attach to username
 char *M_GetSaveSlotText(void)
 {
-	char *slotVal;
 	char *mapVal;
 
 	// initialize the automap's level title widget
@@ -941,30 +942,30 @@ char *M_GetSaveSlotText(void)
 			break;
 	} else mapVal = "E0M0";
 
-	int size = sizeof(DS_USERNAME) + sizeof(mapVal) + 1;
-	if(size > SAVESTRINGSIZE - 1)
+	int size = strlen(DS_USERNAME) + strlen(mapVal) + 1;
+	printf("%d, %d\n",size,SAVESTRINGSIZE);
+	if(size > SAVESTRINGSIZE - 2)
 	{
-		// too wide. Manually cut down until max size.. Argh!
-		slotVal = malloc(SAVESTRINGSIZE - 1);
+		printf("trimming name");
 		strcpy(slotVal, DS_USERNAME);
 		strcat(slotVal, "_");
 
 		char *s = mapVal;
-		int i = sizeof(DS_USERNAME) + 1;
-		while(*s && i < (SAVESTRINGSIZE - 1))
+		int i = strlen(DS_USERNAME);
+		while(*s && i < (SAVESTRINGSIZE - 2))
 		{
 			i++;
-			*(slotVal + i) = (*s++);
+			slotVal[i] = (*s++);
 		}
 	}
 	else
 	{
 		// easy, past every thing and send it to return.
-		slotVal = malloc(size);
 		strcpy(slotVal, DS_USERNAME);
 		strcat(slotVal, "_");
 		strcat(slotVal, mapVal);
 	}
+	slotVal[SAVESTRINGSIZE-1] = 0;
 
 	return slotVal;
 }
@@ -1031,6 +1032,10 @@ void M_SaveSelect(int choice)
   // we are going to be intercepting all chars
   saveStringEnter = 1;
 
+#ifdef __NDS__
+// open keyboard
+	keyboardStart();
+#endif
   saveSlot = choice;
   strcpy(saveOldString,savegamestrings[choice]);
   if (!strcmp(savegamestrings[choice],s_EMPTYSTRING)) // Ty 03/27/98 - externalized
@@ -4072,11 +4077,12 @@ setup_menu_t cred_settings[]={
   {"DSDOOM Programmers",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
   {"Chuck 'TheCuckster' Moyes",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+1)+CR_SH*cr_adcr},
   {"Dave 'Wintermute' Murphy",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+2)+CR_SH*cr_adcr},
-  {"Wouter 'Jefklak' Groeneveld",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+3)+CR_SH*cr_adcr},
-  {"Additional credits to:",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*(adcr+4)+CR_SH*cr_adcr},
-  {"id Software for DOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+5)+CR_SH*cr_adcr},
-  {"All porters for BOOM, DOSDOOM, ZDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+6)+CR_SH*cr_adcr},
-  {"all others who helped (see AUTHORS file)",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+7)+CR_SH*cr_adcr},
+  {"Happy Bunny",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+3)+CR_SH*cr_adcr},
+  {"Wouter 'Jefklak' Groeneveld",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+4)+CR_SH*cr_adcr},
+  {"Additional credits to:",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X, CR_Y + CR_S*(adcr+5)+CR_SH*cr_adcr},
+  {"id Software for DOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+6)+CR_SH*cr_adcr},
+  {"All porters for BOOM, DOSDOOM, ZDOOM",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+7)+CR_SH*cr_adcr},
+  {"all others who helped (see AUTHORS file)",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*(adcr+8)+CR_SH*cr_adcr},
 
   {0,S_SKIP|S_END,m_null}
 };
@@ -4119,20 +4125,43 @@ boolean M_Responder (event_t* ev) {
 
   // Save Game string input
   if (saveStringEnter) {
-		lprintf(LO_INFO, "M_Responder: saveStringEnter\n");
-		if (ch == key_menu_escape)                    // phares 3/7/98
-  {
-    saveStringEnter = 0;
-    strcpy(&savegamestrings[saveSlot][0],saveOldString);
-  }
-
-		// Jefklak 21/11/06 - 'A' is saving too
-		else if (ch == key_menu_enter || ch == KEYD_RCTRL)
-  {
-    saveStringEnter = 0;
-			if(savegamestrings[saveSlot][0])
-      M_DoSave(saveSlot);
-  }
+	//lprintf(LO_INFO, "M_Responder: saveStringEnter %d\n",ch);
+	if (ch == 8)                            // phares 3/7/98
+	{
+		if (saveCharIndex > 0)
+		{
+			saveCharIndex--;
+			savegamestrings[saveSlot][saveCharIndex] = 0;
+		}
+	}
+	else if (ch == key_menu_escape)                    // phares 3/7/98
+	{
+		saveStringEnter = 0;
+		strcpy(&savegamestrings[saveSlot][0],saveOldString);
+#ifdef __NDS__
+// close keyboard
+		keyboardEnd();
+#endif
+	}
+	else if (ch == 10 || ch == key_menu_enter || ch == KEYD_RCTRL) {
+		saveStringEnter = 0;
+		if(savegamestrings[saveSlot][0]) M_DoSave(saveSlot);
+#ifdef __NDS__
+		// close keyboard
+		keyboardEnd();
+#endif
+	}
+	else
+	{
+		ch = toupper(ch);
+		if (ch >= 32 && ch <= 127 &&
+			saveCharIndex < SAVESTRINGSIZE-1 &&
+			M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE-2)*8)
+		{
+			savegamestrings[saveSlot][saveCharIndex++] = ch;
+			savegamestrings[saveSlot][saveCharIndex] = 0;
+		}
+	}
     return true;
   }
 

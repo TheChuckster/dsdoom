@@ -45,6 +45,8 @@ extern int (*I_GetTime)(void);
 void switchConsole();
 void DStoggleBrightness();
 void DSgetUserName();
+void keyboardStart();
+void keyboardEnd();
 extern int gen_console_enable;
 extern int gen_screen_swap;
 extern int FG;
