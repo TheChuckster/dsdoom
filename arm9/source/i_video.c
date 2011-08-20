@@ -527,7 +527,7 @@ void I_StartTic (void) {
 		scanKeys();
 		u16 keys = keysDown();
 		if (keys & KEY_A) key = 10;
-
+		if (keys & KEY_B) key = KEYD_ESCAPE;
 		event_t event;
 		event.type = ev_keydown;
 		event.data1 = key;
