@@ -515,8 +515,9 @@ void keyboardEnd() {
 	keyboardHide();
 	gen_console_enable = old_console;
 	if (gen_console_enable == 0) {
-		setAutoMap();
 		dmaCopy(BG_MAP_RAM_SUB(28),BG_PALETTE_SUB,512);
+		setAutoMap();
+		I_FinishUpdate();
 	} else consoleSetWindow(&bottomScreen, 0,0,32,24);
 
 }
