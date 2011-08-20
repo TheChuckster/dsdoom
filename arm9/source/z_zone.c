@@ -438,6 +438,9 @@ void (Z_Free)(void *p
 #endif
              )
 {
+  if (!p)
+    return;
+
   memblock_t *block = (memblock_t *)((char *) p - HEADER_SIZE);
 
 #ifdef INSTRUMENTED
@@ -449,8 +452,6 @@ void (Z_Free)(void *p
   history_index[free_history] &= ZONE_HISTORY-1;
 #endif
 
-  if (!p)
-    return;
 
 
 #ifdef ZONEIDCHECK
