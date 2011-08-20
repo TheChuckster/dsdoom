@@ -946,7 +946,6 @@ char *M_GetSaveSlotText(void)
 	printf("%d, %d\n",size,SAVESTRINGSIZE);
 	if(size > SAVESTRINGSIZE - 2)
 	{
-		printf("trimming name\n");
 		strcpy(slotVal, DS_USERNAME);
 		strcat(slotVal, "_");
 
@@ -966,7 +965,6 @@ char *M_GetSaveSlotText(void)
 		strcat(slotVal, mapVal);
 	}
 	slotVal[SAVESTRINGSIZE-1] = 0;
-	printf("%s\n",slotVal);
 
 	return slotVal;
 }
