@@ -1,7 +1,7 @@
-dsdoom 1.2.0
+DS Doom 1.2.1
 ============
 
-dsdoom is a port of PrBoom to the Nintendo DS.
+DS Doom is a port of PrBoom to the Nintendo DS.
 http://www.dsdoom.com
 
 PrBoom is a version of the classic 3D shoot'em'up game Doom, originally
@@ -20,6 +20,8 @@ Version changes
 1.2.1
 	> restore automap zoom controls
 	> prevent freeze on changing SFX volume
+	> bring up keyboard for save name editing
+	> A & B buttons operate as select & back in menus
 
 1.2.0
 	> update code for latest libnds, dswifi and libfat
