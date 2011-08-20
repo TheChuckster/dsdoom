@@ -946,7 +946,7 @@ char *M_GetSaveSlotText(void)
 	printf("%d, %d\n",size,SAVESTRINGSIZE);
 	if(size > SAVESTRINGSIZE - 2)
 	{
-		printf("trimming name");
+		printf("trimming name\n");
 		strcpy(slotVal, DS_USERNAME);
 		strcat(slotVal, "_");
 
@@ -966,6 +966,7 @@ char *M_GetSaveSlotText(void)
 		strcat(slotVal, mapVal);
 	}
 	slotVal[SAVESTRINGSIZE-1] = 0;
+	printf("%s\n",slotVal);
 
 	return slotVal;
 }
@@ -986,25 +987,15 @@ void M_DrawSave(void)
     M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
 
-  if (saveStringEnter)
-    {
+	if (saveStringEnter)
+	{
 		if(!savegamestrings[saveSlot][0])
 		{
-			//  Jefklak 21/11/06 - autoname save slots. Cool!
-			// incompatible types, manually copy chars
-			char *s = M_GetSaveSlotText();
-			int i = 0;
-			while(*s)
-			{
-				savegamestrings[saveSlot][i] = (*s++);
-				i++;
-			}
-
-			lprintf(LO_INFO, "save text: \n\t|%s|\n", savegamestrings[saveSlot]);
-    i = M_StringWidth(savegamestrings[saveSlot]);
+			//lprintf(LO_INFO, "save text: \n\t|%s|\n", savegamestrings[saveSlot]);
+    		i = M_StringWidth(savegamestrings[saveSlot]);
 			M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot, savegamestrings[saveSlot]);
 		}
-    }
+	}
 }
 
 //
@@ -1029,18 +1020,30 @@ void M_DoSave(int slot)
 //
 void M_SaveSelect(int choice)
 {
-  // we are going to be intercepting all chars
-  saveStringEnter = 1;
+	// we are going to be intercepting all chars
+	saveStringEnter = 1;
 
 #ifdef __NDS__
 // open keyboard
 	keyboardStart();
 #endif
-  saveSlot = choice;
-  strcpy(saveOldString,savegamestrings[choice]);
-  if (!strcmp(savegamestrings[choice],s_EMPTYSTRING)) // Ty 03/27/98 - externalized
-    savegamestrings[choice][0] = 0;
-  saveCharIndex = strlen(savegamestrings[choice]);
+	saveSlot = choice;
+
+	strcpy(saveOldString,savegamestrings[saveSlot]);
+
+	if (!strcmp(savegamestrings[saveSlot],s_EMPTYSTRING)) // Ty 03/27/98 - externalized
+		savegamestrings[saveSlot][0] = 0;
+
+	if(savegamestrings[saveSlot][0] == 0) {
+		char *s = M_GetSaveSlotText();
+		int i = 0;
+		while(*s) {
+			savegamestrings[saveSlot][i] = (*s++);
+			i++;
+		}
+		savegamestrings[saveSlot][i] = 0;
+	}
+	saveCharIndex = strlen(savegamestrings[saveSlot]);
 }
 
 //
