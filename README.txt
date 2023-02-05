@@ -2,7 +2,7 @@ DS Doom 1.2.1
 ============
 
 DS Doom is a port of PrBoom to the Nintendo DS.
-http://www.dsdoom.com
+http://www.dsdoom.net
 
 PrBoom is a version of the classic 3D shoot'em'up game Doom, originally
 written by id Software.
